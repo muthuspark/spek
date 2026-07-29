@@ -12,10 +12,6 @@
   <img alt="Tasks" src="https://spekhq.github.io/spek/badges/tasks.svg" />
 </p>
 
-**[繁體中文](README.zh-TW.md)**
-
----
-
 ## What is spek?
 
 **spek** turns your local OpenSpec directory into a navigable, searchable interface. Instead of reading raw Markdown files in a text editor, spek provides structured browsing with BDD syntax highlighting, task progress tracking, and full-text search.
@@ -361,7 +357,7 @@ pull-request process.
 
 ## Acknowledgments
 
-This project was inspired by [龍哥（高見龍）](https://kaochenlong.com)'s articles on SDD (Spec Driven Development). Special thanks to him for his contributions to SDD and [OpenSpec](https://github.com/Fission-AI/OpenSpec).
+This project was inspired by [Kao Chenlong](https://kaochenlong.com)'s articles on SDD (Spec Driven Development). Special thanks to him for his contributions to SDD and [OpenSpec](https://github.com/Fission-AI/OpenSpec).
 
 - [SDD — Spec Driven Development](https://kaochenlong.com/sdd-spec-driven-development)
 - [Spectra with OpenSpec](https://kaochenlong.com/spectra-with-openspec)
