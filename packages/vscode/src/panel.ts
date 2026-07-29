@@ -226,7 +226,7 @@ export class SpekPanel {
 
     // 組裝最終 HTML（CSS 由 Vite IIFE build inline 到 JS 中，以 <style> 注入）
     const finalHtml = `<!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
