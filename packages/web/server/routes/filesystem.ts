@@ -2,8 +2,71 @@ import { Router } from "express";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 export const filesystemRouter = Router();
+const execFileAsync = promisify(execFile);
+
+async function selectFolder(): Promise<string | null> {
+  if (process.platform === "darwin") {
+    const { stdout } = await execFileAsync("osascript", [
+      "-e",
+      'POSIX path of (choose folder with prompt "Select a project folder")',
+    ]);
+    return stdout.trim() || null;
+  }
+
+  if (process.platform === "win32") {
+    const script = [
+      "Add-Type -AssemblyName System.Windows.Forms",
+      "$dialog = New-Object System.Windows.Forms.FolderBrowserDialog",
+      "$dialog.Description = 'Select a project folder'",
+      "if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.SelectedPath) }",
+    ].join("; ");
+    const { stdout } = await execFileAsync("powershell.exe", ["-NoProfile", "-Command", script]);
+    return stdout.trim() || null;
+  }
+
+  try {
+    const { stdout } = await execFileAsync("zenity", [
+      "--file-selection",
+      "--directory",
+      "--title=Select a project folder",
+    ]);
+    return stdout.trim() || null;
+  } catch (error) {
+    if (isPickerCancelled(error)) return null;
+    const { stdout } = await execFileAsync("kdialog", ["--getexistingdirectory", os.homedir()]);
+    return stdout.trim() || null;
+  }
+}
+
+function isPickerCancelled(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = (error as { code?: number | string }).code;
+  return code === 1 || code === -128;
+}
+
+filesystemRouter.get("/select", async (_req, res) => {
+  try {
+    const selectedPath = await selectFolder();
+    if (!selectedPath) {
+      res.status(204).end();
+      return;
+    }
+
+    res.json({ path: path.resolve(selectedPath) });
+  } catch (error) {
+    if (isPickerCancelled(error)) {
+      res.status(204).end();
+      return;
+    }
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Unable to open the system folder selector",
+    });
+  }
+});
 
 filesystemRouter.get("/browse", (req, res) => {
   const dirPath = (req.query.path as string) || os.homedir();

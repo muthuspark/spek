@@ -241,10 +241,10 @@ export function useGraphData(
 
 // --- Filesystem API hooks ---
 
-export function useBrowse(dirPath: string): FetchState<BrowseData> {
+export function useBrowse(dirPath: string | null): FetchState<BrowseData> {
   const adapter = useApiAdapter();
   return useAsyncData(
-    dirPath ? () => adapter.browse(dirPath) : null,
+    dirPath !== null ? () => adapter.browse(dirPath) : null,
     [dirPath],
   );
 }

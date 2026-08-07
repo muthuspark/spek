@@ -1,21 +1,41 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRepo } from "../contexts/RepoContext";
-import { useBrowse, useDetect } from "../hooks/useOpenSpec";
+import { useDetect } from "../hooks/useOpenSpec";
 
 type PathStatus = "checking" | "valid" | "invalid";
+
+function getProjectName(projectPath: string): string {
+  const normalizedPath = projectPath.replace(/[\\/]+$/, "");
+  return normalizedPath.split(/[\\/]/).pop() || projectPath;
+}
 
 export function SelectRepo() {
   const { setRepoPath, recentPaths, removePath } = useRepo();
   const navigate = useNavigate();
 
   const [inputPath, setInputPath] = useState("");
-  const [browsePath, setBrowsePath] = useState("");
-  const [showBrowser, setShowBrowser] = useState(false);
+  const [pickerLoading, setPickerLoading] = useState(false);
+  const [pickerError, setPickerError] = useState<string | null>(null);
   const [pathStatuses, setPathStatuses] = useState<Record<string, PathStatus>>({});
 
   const detect = useDetect(inputPath);
-  const browse = useBrowse(browsePath);
+
+  async function selectFolder() {
+    setPickerLoading(true);
+    setPickerError(null);
+    try {
+      const response = await fetch("/api/fs/select");
+      if (response.status === 204) return;
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to select a folder");
+      setInputPath(data.path);
+    } catch (error) {
+      setPickerError(error instanceof Error ? error.message : "Unable to select a folder");
+    } finally {
+      setPickerLoading(false);
+    }
+  }
 
   // 非同步驗證最近路徑
   useEffect(() => {
@@ -68,12 +88,12 @@ export function SelectRepo() {
             <button
               type="button"
               onClick={() => {
-                setBrowsePath(inputPath || "");
-                setShowBrowser(!showBrowser);
+                void selectFolder();
               }}
+              disabled={pickerLoading}
               className="px-3 py-2 bg-bg-tertiary border border-border rounded text-text-secondary text-sm hover:text-text-primary transition-colors"
             >
-              Browse
+              {pickerLoading ? "Opening..." : "Browse"}
             </button>
           </div>
 
@@ -101,53 +121,10 @@ export function SelectRepo() {
           {detect.error && (
             <p className="mt-3 text-red-400 text-sm">{detect.error}</p>
           )}
+          {pickerError && (
+            <p className="mt-3 text-red-400 text-sm">{pickerError}</p>
+          )}
         </form>
-
-        {/* 目錄瀏覽 */}
-        {showBrowser && (
-          <div className="mb-6 bg-bg-secondary border border-border rounded p-4 max-h-64 overflow-y-auto">
-            {browse.loading && <p className="text-text-muted text-sm">Loading...</p>}
-            {browse.error && <p className="text-red-400 text-sm">{browse.error}</p>}
-            {browse.data && (
-              <>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-text-muted text-xs font-mono truncate">{browse.data.path}</span>
-                  <button
-                    onClick={() => {
-                      setInputPath(browse.data!.path);
-                    }}
-                    className="text-accent text-xs hover:underline whitespace-nowrap"
-                  >
-                    Select this
-                  </button>
-                </div>
-                <div className="space-y-0.5">
-                  {/* 上層目錄 */}
-                  <button
-                    onClick={() => {
-                      const parent = browse.data!.path.replace(/\/[^/]+$/, "") || "/";
-                      setBrowsePath(parent);
-                    }}
-                    className="block w-full text-left px-2 py-1 text-sm text-text-secondary hover:bg-bg-tertiary rounded"
-                  >
-                    ..
-                  </button>
-                  {browse.data.entries
-                    .filter((e) => e.type === "directory")
-                    .map((entry) => (
-                      <button
-                        key={entry.path}
-                        onClick={() => setBrowsePath(entry.path)}
-                        className="block w-full text-left px-2 py-1 text-sm text-text-primary hover:bg-bg-tertiary rounded"
-                      >
-                        {entry.name}/
-                      </button>
-                    ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
 
         {/* 最近使用路徑 */}
         {recentPaths.length > 0 && (
@@ -179,7 +156,7 @@ export function SelectRepo() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       )}
-                      <span className="truncate">{p}</span>
+                      <span className="truncate">{getProjectName(p)}</span>
                     </button>
                     {status === "invalid" && (
                       <button
