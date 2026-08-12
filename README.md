@@ -338,6 +338,55 @@ cd packages/intellij && ./gradlew buildPlugin  # Build plugin ZIP
 
 **Requirements:** Node.js 22+, Java 17+ (for IntelliJ plugin build)
 
+### Run continuously with systemd (Linux)
+
+You can run the development server as a systemd user service. It will restart after a failure and,
+with lingering enabled, start during boot without requiring you to log in. Run these commands from
+the repository root after `npm install`:
+
+```bash
+PROJECT_DIR="$(pwd -P)"
+NPM_BIN="$(command -v npm)"
+NODE_BIN_DIR="$(dirname "$NPM_BIN")"
+
+mkdir -p "$HOME/.config/systemd/user"
+cat > "$HOME/.config/systemd/user/spek-dev.service" <<EOF
+[Unit]
+Description=Spek development server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory="$PROJECT_DIR"
+Environment="HOME=$HOME"
+Environment="PATH=$NODE_BIN_DIR:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart="$NPM_BIN" run dev
+Restart=always
+RestartSec=5
+KillMode=control-group
+
+[Install]
+WantedBy=default.target
+EOF
+
+systemctl --user daemon-reload
+systemctl --user enable --now spek-dev.service
+loginctl enable-linger "$USER"
+```
+
+Enabling lingering may require administrator authorization on some distributions. Spek normally
+uses <http://localhost:5173> for Vite and port 3001 for Express; make sure both ports are available.
+If 5173 is occupied, Vite selects the next available port and reports it in the service log.
+
+Manage and inspect the service with:
+
+```bash
+systemctl --user status spek-dev.service
+systemctl --user restart spek-dev.service
+systemctl --user disable --now spek-dev.service
+journalctl --user -u spek-dev.service -f
+```
+
 ### Live reload in containers (devcontainer / WSL)
 
 spek watches `openspec/` and live-reloads on changes. On filesystems that don't deliver native change events — 9p / drvfs / NFS / CIFS bind mounts, as used by devcontainers and WSL — spek automatically falls back to polling so newly created files are still detected. Detection is based on the watched path's filesystem type. To override:
