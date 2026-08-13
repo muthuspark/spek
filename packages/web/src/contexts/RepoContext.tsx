@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
 const STORAGE_KEY = "spek:recent-paths";
-const MAX_RECENT = 5;
+const MAX_RECENT = 10;
 
 interface RepoContextValue {
   repoPath: string;
