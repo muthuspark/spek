@@ -1,5 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { extractHeadings } from "@spekjs/core/headings";
 import type { ChangeArtifact } from "@spekjs/core";
 import { useChange, useSpecs } from "../hooks/useOpenSpec";
@@ -27,6 +29,81 @@ function isMarkdownLike(kind: ChangeArtifact["kind"]): boolean {
   return kind === "markdown" || kind === "specs";
 }
 
+function TasksTabContent({
+  tasks,
+}: {
+  tasks: {
+    completed: number;
+    total: number;
+    sections: { title: string; tasks: { text: string; completed: boolean }[] }[];
+  };
+}) {
+  const [showPendingOnly, setShowPendingOnly] = useState(false);
+  const visibleSections = tasks.sections
+    .map((section) => ({
+      ...section,
+      tasks: showPendingOnly ? section.tasks.filter((task) => !task.completed) : section.tasks,
+    }))
+    .filter((section) => section.tasks.length > 0);
+
+  return (
+    <div className="space-y-4">
+      <TaskProgress completed={tasks.completed} total={tasks.total} />
+      <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-text-secondary select-none">
+        <input
+          type="checkbox"
+          checked={showPendingOnly}
+          onChange={(event) => setShowPendingOnly(event.target.checked)}
+          className="h-4 w-4 accent-accent"
+        />
+        <span>Show pending only</span>
+        {showPendingOnly && (
+          <span className="text-xs text-text-muted">
+            {tasks.total - tasks.completed} remaining
+          </span>
+        )}
+      </label>
+      {visibleSections.length > 0 ? (
+        <div className="space-y-4">
+          {visibleSections.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-sm font-semibold text-text-secondary mb-2">{section.title}</h3>
+              <div className="space-y-1">
+                {section.tasks.map((task, i) => (
+                  <div key={i} className={`flex items-start gap-2 text-sm ${task.completed ? "opacity-60" : ""}`}>
+                    {task.completed ? (
+                      <svg className="w-4 h-4 mt-0.5 shrink-0 text-green-400" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" fill="currentColor" opacity="0.2" />
+                        <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4 mt-0.5 shrink-0 text-text-muted" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+                      </svg>
+                    )}
+                    <div className={task.completed ? "text-text-secondary line-through" : "text-text-primary"}>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{ p: ({ children }) => <>{children}</> }}
+                      >
+                        {task.text}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-muted">
+          No pending tasks — everything is complete.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function renderArtifact(artifact: ChangeArtifact, specTopics: string[]) {
   if (artifact.kind === "markdown") {
     return artifact.content ? (
@@ -44,35 +121,7 @@ function renderArtifact(artifact: ChangeArtifact, specTopics: string[]) {
   }
   // tasks
   return artifact.tasks ? (
-    <div className="space-y-4">
-      <TaskProgress completed={artifact.tasks.completed} total={artifact.tasks.total} />
-      <div className="space-y-4">
-        {artifact.tasks.sections.map((section) => (
-          <div key={section.title}>
-            <h3 className="text-sm font-semibold text-text-secondary mb-2">{section.title}</h3>
-            <div className="space-y-1">
-              {section.tasks.map((task, i) => (
-                <div key={i} className={`flex items-start gap-2 text-sm ${task.completed ? "opacity-60" : ""}`}>
-                  {task.completed ? (
-                    <svg className="w-4 h-4 mt-0.5 shrink-0 text-green-400" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="8" r="7" fill="currentColor" opacity="0.2" />
-                      <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4 mt-0.5 shrink-0 text-text-muted" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
-                  )}
-                  <span className={task.completed ? "text-text-secondary line-through" : "text-text-primary"}>
-                    {task.text}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <TasksTabContent tasks={artifact.tasks} />
   ) : (
     <p className="text-text-muted text-sm">No content</p>
   );
