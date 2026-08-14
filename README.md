@@ -387,6 +387,87 @@ systemctl --user disable --now spek-dev.service
 journalctl --user -u spek-dev.service -f
 ```
 
+### Run continuously with launchd (macOS)
+
+macOS has no systemd. The equivalent is a launchd user agent, which starts at login and restarts the
+server after a crash. Run these commands from the repository root after `npm install`:
+
+```bash
+PROJECT_DIR="$(pwd -P)"
+NPM_BIN="$(command -v npm)"
+NODE_BIN_DIR="$(dirname "$NPM_BIN")"
+PLIST="$HOME/Library/LaunchAgents/com.spek.dev.plist"
+
+mkdir -p "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"
+cat > "$PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.spek.dev</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>$NPM_BIN</string>
+        <string>run</string>
+        <string>dev</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>$PROJECT_DIR</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOME</key>
+        <string>$HOME</string>
+        <key>PATH</key>
+        <string>$NODE_BIN_DIR:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>5</integer>
+
+    <key>StandardOutPath</key>
+    <string>$HOME/Library/Logs/spek-dev.log</string>
+    <key>StandardErrorPath</key>
+    <string>$HOME/Library/Logs/spek-dev.error.log</string>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
+</dict>
+</plist>
+EOF
+
+launchctl bootstrap "gui/$(id -u)" "$PLIST"
+launchctl enable "gui/$(id -u)/com.spek.dev"
+```
+
+launchd does not run a login shell, so `ProgramArguments` needs the absolute path to `npm` — the
+snippet above resolves it from your current shell. If you manage Node with a version manager such as
+nvm, that path pins one Node version; switching versions later means regenerating the plist.
+`KeepAlive` with `SuccessfulExit` set to `false` restarts the server after a crash but leaves it
+stopped after a clean exit. There is no equivalent to systemd lingering: a user agent starts when you
+log in, not at boot.
+
+Manage and inspect the agent with:
+
+```bash
+launchctl print "gui/$(id -u)/com.spek.dev"        # status
+launchctl kickstart -k "gui/$(id -u)/com.spek.dev" # restart
+launchctl bootout "gui/$(id -u)/com.spek.dev"      # stop and unload
+tail -f "$HOME/Library/Logs/spek-dev.log"
+```
+
 ### Live reload in containers (devcontainer / WSL)
 
 spek watches `openspec/` and live-reloads on changes. On filesystems that don't deliver native change events — 9p / drvfs / NFS / CIFS bind mounts, as used by devcontainers and WSL — spek automatically falls back to polling so newly created files are still detected. Detection is based on the watched path's filesystem type. To override:
