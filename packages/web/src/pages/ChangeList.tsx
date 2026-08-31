@@ -7,6 +7,7 @@ import { formatLifecycleListRow, todayIso } from "../utils/lifecycle";
 import { WorktreeBadge } from "../components/WorktreeBadge";
 import { SchemaBadge } from "../components/SchemaBadge";
 import { changeKey, changeTo } from "../utils/changeLink";
+import { splitByProgress } from "../utils/changeProgress";
 
 function changeMetaDisplay(c: ChangeInfo, today: string): { text: string; tooltip: string } | null {
   const lifecycle = formatLifecycleListRow(c, today);
@@ -26,10 +27,13 @@ function changeMetaDisplay(c: ChangeInfo, today: string): { text: string; toolti
   return null;
 }
 
-function ChangeRow({ c, today, accent, showSource }: {
+// `accent` = the 4px left border marking live work (In Progress only). `showProgress` = render the
+// task bar; Not Started rows get the bar without the accent, archived rows get neither.
+function ChangeRow({ c, today, accent, showProgress, showSource }: {
   c: ChangeInfo;
   today: string;
   accent: boolean;
+  showProgress: boolean;
   showSource: boolean;
 }) {
   const meta = changeMetaDisplay(c, today);
@@ -40,9 +44,9 @@ function ChangeRow({ c, today, accent, showSource }: {
         accent ? " border-l-4 border-l-accent" : ""
       }`}
     >
-      <div className={`flex items-center justify-between gap-4${accent ? " mb-2" : ""}`}>
+      <div className={`flex items-center justify-between gap-4${showProgress ? " mb-2" : ""}`}>
         <span className="flex items-center gap-2 min-w-0">
-          <span className={`truncate ${accent ? "text-text-primary font-medium" : "text-text-primary"}`}>
+          <span className={`truncate ${showProgress ? "text-text-primary font-medium" : "text-text-primary"}`}>
             {c.description}
           </span>
           {showSource && c.source && <WorktreeBadge source={c.source} />}
@@ -75,7 +79,7 @@ function ChangeRow({ c, today, accent, showSource }: {
           )}
         </span>
       </div>
-      {accent && c.taskStats && (
+      {showProgress && c.taskStats && (
         <TaskProgress completed={c.taskStats.completed} total={c.taskStats.total} />
       )}
     </Link>
@@ -96,6 +100,7 @@ export function ChangeList() {
   const showSource = !!data?.aggregated && worktrees.length > 1;
   const defaultSchema = data?.defaultSchema;
   const today = todayIso();
+  const { inProgress, notStarted } = splitByProgress(active);
 
   const header = (
     <div>
@@ -121,12 +126,30 @@ export function ChangeList() {
     <div className="space-y-8">
       {header}
 
-      {active.length > 0 && (
+      {inProgress.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Active</h2>
+          <h2 className="text-lg font-semibold mb-3">In Progress ({inProgress.length})</h2>
           <div className="space-y-2">
-            {active.map((c) => (
-              <ChangeRow key={changeKey(c)} c={c} today={today} accent showSource={showSource} />
+            {inProgress.map((c) => (
+              <ChangeRow key={changeKey(c)} c={c} today={today} accent showProgress showSource={showSource} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {notStarted.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3">Not Started ({notStarted.length})</h2>
+          <div className="space-y-2">
+            {notStarted.map((c) => (
+              <ChangeRow
+                key={changeKey(c)}
+                c={c}
+                today={today}
+                accent={false}
+                showProgress
+                showSource={showSource}
+              />
             ))}
           </div>
         </section>
@@ -137,7 +160,14 @@ export function ChangeList() {
           <h2 className="text-lg font-semibold mb-3">Archived</h2>
           <div className="space-y-2">
             {archived.map((c) => (
-              <ChangeRow key={changeKey(c)} c={c} today={today} accent={false} showSource={showSource} />
+              <ChangeRow
+                key={changeKey(c)}
+                c={c}
+                today={today}
+                accent={false}
+                showProgress={false}
+                showSource={showSource}
+              />
             ))}
           </div>
         </section>

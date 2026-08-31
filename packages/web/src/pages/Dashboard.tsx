@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import type { ChangeInfo } from "@spekjs/core";
 import { useOverview, useChanges } from "../hooks/useOpenSpec";
 import { TaskProgress } from "../components/TaskProgress";
 import { formatRelativeTime } from "../utils/formatRelativeTime";
@@ -6,6 +7,7 @@ import { daysBetween, todayIso } from "../utils/lifecycle";
 import { WorktreeBadge } from "../components/WorktreeBadge";
 import { SchemaBadge } from "../components/SchemaBadge";
 import { changeKey, changeTo } from "../utils/changeLink";
+import { splitByProgress } from "../utils/changeProgress";
 
 const STALE_THRESHOLD_DAYS = 30;
 
@@ -41,6 +43,11 @@ export function Dashboard() {
     const avg = archivedSpans.reduce((sum, n) => sum + n, 0) / archivedSpans.length;
     avgLifecycle = avg < 1 ? "<1d" : `${Math.round(avg)}d`;
   }
+  // Same predicate as the Changes page: started = at least one checked task.
+  const { inProgress, notStarted } = splitByProgress(activeChanges);
+  // The count comes from useChanges, which resolves independently of useOverview (the only thing
+  // gating this render), so a bare 0 here would be indistinguishable from a real zero.
+  const notStartedValue = changes.data ? notStarted.length : "—";
   const staleActiveCount = activeChanges.filter(
     (c) => c.createdDate && daysBetween(c.createdDate, today) > STALE_THRESHOLD_DAYS,
   ).length;
@@ -57,40 +64,40 @@ export function Dashboard() {
         <StatCard label="Task Completion" value={`${taskPercent}%`} delay={240} />
         <StatCard label="Avg lifecycle (archived)" value={avgLifecycle} delay={320} />
         <StatCard label="Stale active (>30d)" value={staleActiveCount} delay={400} />
+        <StatCard label="Not started" value={notStartedValue} delay={480} />
       </div>
 
-      {/* Active changes */}
+      {/* Active changes, split by whether the work has actually begun */}
       <section>
         <h2 className="text-lg font-semibold mb-3">Active Changes</h2>
         {activeChanges.length === 0 ? (
           <p className="text-text-muted text-sm">No active changes</p>
         ) : (
-          <div className="space-y-2">
-            {activeChanges.map((c) => (
-              <Link
-                key={changeKey(c)}
-                to={changeTo(c)}
-                className="block bg-bg-secondary border border-border rounded p-4 hover:border-accent transition-colors"
-              >
-                <div className="flex items-center justify-between gap-4 mb-2">
-                  <span className="flex items-center gap-2 min-w-0">
-                    <span className="text-text-primary font-medium truncate">{c.description}</span>
-                    {showSource && c.source && <WorktreeBadge source={c.source} />}
-                  </span>
-                  <span className="flex items-center gap-2 shrink-0">
-                    <SchemaBadge schema={c.schema} defaultSchema={c.defaultSchema} />
-                    {(c.timestamp || c.date) && (
-                      <span className="text-text-muted text-xs whitespace-nowrap" title={c.timestamp || undefined}>
-                        {c.timestamp ? formatRelativeTime(c.timestamp) : c.date}
-                      </span>
-                    )}
-                  </span>
+          <div className="space-y-4">
+            {inProgress.length > 0 && (
+              <div>
+                <h3 className="text-text-secondary text-sm font-medium mb-2">
+                  In Progress ({inProgress.length})
+                </h3>
+                <div className="space-y-2">
+                  {inProgress.map((c) => (
+                    <ActiveChangeRow key={changeKey(c)} c={c} showSource={showSource} />
+                  ))}
                 </div>
-                {c.taskStats && (
-                  <TaskProgress completed={c.taskStats.completed} total={c.taskStats.total} />
-                )}
-              </Link>
-            ))}
+              </div>
+            )}
+            {notStarted.length > 0 && (
+              <div>
+                <h3 className="text-text-secondary text-sm font-medium mb-2">
+                  Not Started ({notStarted.length})
+                </h3>
+                <div className="space-y-2">
+                  {notStarted.map((c) => (
+                    <ActiveChangeRow key={changeKey(c)} c={c} showSource={showSource} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -144,6 +151,31 @@ export function Dashboard() {
         </Link>
       </div>
     </div>
+  );
+}
+
+function ActiveChangeRow({ c, showSource }: { c: ChangeInfo; showSource: boolean }) {
+  return (
+    <Link
+      to={changeTo(c)}
+      className="block bg-bg-secondary border border-border rounded p-4 hover:border-accent transition-colors"
+    >
+      <div className="flex items-center justify-between gap-4 mb-2">
+        <span className="flex items-center gap-2 min-w-0">
+          <span className="text-text-primary font-medium truncate">{c.description}</span>
+          {showSource && c.source && <WorktreeBadge source={c.source} />}
+        </span>
+        <span className="flex items-center gap-2 shrink-0">
+          <SchemaBadge schema={c.schema} defaultSchema={c.defaultSchema} />
+          {(c.timestamp || c.date) && (
+            <span className="text-text-muted text-xs whitespace-nowrap" title={c.timestamp || undefined}>
+              {c.timestamp ? formatRelativeTime(c.timestamp) : c.date}
+            </span>
+          )}
+        </span>
+      </div>
+      {c.taskStats && <TaskProgress completed={c.taskStats.completed} total={c.taskStats.total} />}
+    </Link>
   );
 }
 
