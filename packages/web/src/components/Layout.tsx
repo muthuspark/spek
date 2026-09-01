@@ -7,6 +7,10 @@ import { Sidebar } from "./Sidebar";
 import { SearchDialog } from "./SearchDialog";
 import { AggregationScopeControl } from "./AggregationScopeControl";
 
+function getWorkspaceName(workspacePath: string): string {
+  return workspacePath.split(/[\\/]/).filter(Boolean).pop() ?? workspacePath;
+}
+
 export function Layout() {
   const { repoPath } = useRepo();
   const { theme, toggleTheme } = useTheme();
@@ -137,7 +141,7 @@ export function Layout() {
         </button>
         {!isMobile && (
           <span className="text-text-muted text-sm font-mono truncate max-w-80" title={repoPath}>
-            {repoPath}
+            {getWorkspaceName(repoPath)}
           </span>
         )}
       </header>
