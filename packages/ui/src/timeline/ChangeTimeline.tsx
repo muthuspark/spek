@@ -56,6 +56,8 @@ export interface ChangeTimelineProps {
    * 只有一個宿主用得到的元件，不如讓宿主自己注入。
    */
   renderBadge?: (change: ChangeInfo) => React.ReactNode;
+  /** Optional host-provided color for each change, used for developer-based palettes. */
+  getChangeColor?: (change: ChangeInfo) => string | undefined;
   metrics?: Partial<TimelineMetrics>;
 }
 
@@ -99,6 +101,7 @@ export function ChangeTimeline({
   groupByTopic,
   onSelectChange,
   renderBadge,
+  getChangeColor,
   metrics: metricsOverride,
 }: ChangeTimelineProps) {
   const metrics = { ...DEFAULT_METRICS, ...metricsOverride };
@@ -242,6 +245,11 @@ export function ChangeTimeline({
                 role="img"
                 aria-label="Change lifecycle timeline"
               >
+                <defs>
+                  <pattern id="spekui-archived-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+                    <line x1="0" y1="0" x2="0" y2="8" stroke={`var(${CSS_VARS.textMuted})`} strokeWidth="2" strokeOpacity="0.7" />
+                  </pattern>
+                </defs>
                 <TimelineAxis
                   ticks={ticks}
                   scale={scale}
@@ -277,6 +285,7 @@ export function ChangeTimeline({
                       barHeight={barHeight}
                       onHover={setHover}
                       onClick={handleClick}
+                      color={getChangeColor?.(item.change)}
                     />
                   );
                 })}

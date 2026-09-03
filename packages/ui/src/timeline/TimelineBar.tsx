@@ -10,6 +10,7 @@ interface TimelineBarProps {
   barHeight: number;
   onHover: (payload: BarHoverPayload | null) => void;
   onClick: (change: ChangeInfo) => void;
+  color?: string;
 }
 
 export interface BarHoverPayload {
@@ -33,6 +34,7 @@ export function TimelineBar({
   barHeight,
   onHover,
   onClick,
+  color,
 }: TimelineBarProps) {
   if (!change.createdDate) return null;
 
@@ -41,8 +43,8 @@ export function TimelineBar({
   const endX = isArchived ? scale(change.archivedDate as string) : scale(today);
   const rawWidth = Math.max(MIN_BAR_WIDTH, endX - startX);
 
-  const fill = isArchived ? `var(${CSS_VARS.textMuted})` : `var(${CSS_VARS.accent})`;
-  const fillOpacity = isArchived ? 0.45 : 0.75;
+  const fill = color ?? (isArchived ? `var(${CSS_VARS.textMuted})` : `var(${CSS_VARS.accent})`);
+  const fillOpacity = isArchived ? 0.3 : 1;
 
   const handleMove = (e: React.MouseEvent<SVGGElement>) => {
     onHover({
@@ -73,6 +75,18 @@ export function TimelineBar({
       >
         <title>{`${change.slug} (${change.status})${change.source && !change.source.isMain ? ` · ${change.source.branch ?? "detached"}` : ""}`}</title>
       </rect>
+      {isArchived && (
+        <rect
+          x={startX}
+          y={y}
+          width={rawWidth}
+          height={barHeight}
+          rx={3}
+          ry={3}
+          fill="url(#spekui-archived-hatch)"
+          pointerEvents="none"
+        />
+      )}
       {!isArchived && (
         <polygon
           points={`${startX + rawWidth},${y} ${startX + rawWidth + ARROW_WIDTH},${y + barHeight / 2} ${startX + rawWidth},${y + barHeight}`}

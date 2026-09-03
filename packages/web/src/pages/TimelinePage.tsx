@@ -7,6 +7,18 @@ import type { ChangeInfo } from "@spekjs/core";
 import { buildLanes, ChangeTimeline, type Lane } from "@spekjs/ui";
 import { WorktreeBadge } from "../components/WorktreeBadge";
 import { changeKey, changeTo } from "../utils/changeLink";
+import { isStarted } from "../utils/changeProgress";
+
+const DEVELOPER_COLORS = [
+  "#38bdf8",
+  "#a78bfa",
+  "#fb7185",
+  "#34d399",
+  "#fbbf24",
+  "#f97316",
+  "#2dd4bf",
+  "#e879f9",
+];
 
 function filterChanges(
   list: ChangeInfo[],
@@ -58,15 +70,34 @@ export function TimelinePage() {
     return [...data.active, ...data.archived];
   }, [data]);
 
+  // Unstarted active changes have not been picked up yet, so keep them out of the timeline.
+  // Archived changes remain visible regardless of their task progress.
+  const pickedChanges = useMemo(
+    () => allChanges.filter((c) => c.status !== "active" || isStarted(c)),
+    [allChanges],
+  );
+
   const filtered = useMemo(
-    () => filterChanges(allChanges, hideActive, hideArchived),
-    [allChanges, hideActive, hideArchived],
+    () => filterChanges(pickedChanges, hideActive, hideArchived),
+    [pickedChanges, hideActive, hideArchived],
   );
 
   const { lanes, unknownCreated } = useMemo(
     () => buildLanes(filtered, graph, groupByTopic),
     [filtered, graph, groupByTopic],
   );
+
+  const developerColors = useMemo(() => {
+    const developers = [...new Set(
+      pickedChanges.map((c) => c.developer).filter((developer): developer is string => !!developer),
+    )].sort((a, b) => a.localeCompare(b));
+    return new Map(developers.map((developer, index) => [
+      developer,
+      DEVELOPER_COLORS[index % DEVELOPER_COLORS.length],
+    ]));
+  }, [pickedChanges]);
+
+  const hasUnknownDeveloper = pickedChanges.some((c) => !c.developer);
 
   const handleSelectChange = useCallback(
     (c: ChangeInfo) => navigate(changeTo(c)),
@@ -82,11 +113,11 @@ export function TimelinePage() {
   if (loading) return <p className="text-text-muted">Loading...</p>;
   if (error) return <p className="text-red-400">Error: {error}</p>;
 
-  const totalChanges = allChanges.length;
+  const totalChanges = pickedChanges.length;
   const totalLaneItems = lanes.reduce<number>((acc: number, lane: Lane) => acc + lane.items.length, 0);
   const noTimelineData = totalLaneItems === 0;
   const everyChangeMissingDate =
-    totalChanges > 0 && allChanges.every((c) => !c.createdDate);
+    totalChanges > 0 && pickedChanges.every((c) => !c.createdDate);
 
   return (
     <div className="space-y-6">
@@ -117,6 +148,24 @@ export function TimelinePage() {
         />
       </div>
 
+      {(developerColors.size > 0 || hasUnknownDeveloper) && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-text-secondary" aria-label="Developer legend">
+          <span className="font-medium text-text-muted">Developer</span>
+          {[...developerColors.entries()].map(([developer, color]) => (
+            <span key={developer} className="inline-flex items-center gap-1.5" title={developer}>
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
+              <span className="max-w-48 truncate">{developer}</span>
+            </span>
+          ))}
+          {hasUnknownDeveloper && (
+            <span className="inline-flex items-center gap-1.5" title="No task commit author found">
+              <span className="w-2.5 h-2.5 rounded-full bg-accent" aria-hidden="true" />
+              Unknown developer
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Empty states */}
       {totalChanges === 0 && (
         <div className="rounded border border-border bg-bg-secondary p-6 text-text-muted text-sm">
@@ -143,6 +192,7 @@ export function TimelinePage() {
           groupByTopic={groupByTopic}
           onSelectChange={handleSelectChange}
           renderBadge={renderBadge}
+          getChangeColor={(change) => change.developer ? developerColors.get(change.developer) : undefined}
         />
       )}
 

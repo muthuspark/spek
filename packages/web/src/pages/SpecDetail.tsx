@@ -119,6 +119,7 @@ export function SpecDetail() {
                     <div
                       key={entry.slug}
                       className="relative hover:bg-bg-secondary rounded p-2 transition-colors"
+                      title={entry.developer ? `Developer: ${entry.developer}` : undefined}
                     >
                       {/* 時間線圓點 */}
                       <div className="absolute -left-4 top-3.5 w-2.5 h-2.5 rounded-full border-2 border-accent bg-bg-primary" />

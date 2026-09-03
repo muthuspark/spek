@@ -3,6 +3,7 @@ import path from "node:path";
 
 // in-memory cache: repoDir → (slug → ISO timestamp)
 const cache = new Map<string, Map<string, string>>();
+const authorCache = new Map<string, Map<string, string>>();
 
 /**
  * 執行單一 git log 指令，解析每個 change slug 的最早 commit 時間。
@@ -86,4 +87,43 @@ export async function resyncTimestamps(
   const timestamps = await buildChangeTimestamps(absDir);
   cache.set(absDir, timestamps);
   return timestamps;
+}
+
+/** Get the author of the latest non-merge commit touching each change's tasks.md. */
+export function buildChangeAuthors(repoDir: string): Promise<Map<string, string>> {
+  return new Promise((resolve) => {
+    execFile(
+      "git",
+      ["log", "--no-merges", "--format=COMMIT%x09%an", "--name-only", "--", "openspec/changes/*/tasks.md", "openspec/changes/archive/*/tasks.md"],
+      { cwd: repoDir, maxBuffer: 10 * 1024 * 1024 },
+      (error, stdout) => {
+        if (error) {
+          resolve(new Map());
+          return;
+        }
+
+        const authors = new Map<string, string>();
+        let currentAuthor: string | null = null;
+        for (const line of stdout.split("\n")) {
+          if (line.startsWith("COMMIT\t")) {
+            currentAuthor = line.slice("COMMIT\t".length).trim() || null;
+          } else if (currentAuthor && line.startsWith("openspec/changes/")) {
+            const parts = line.slice("openspec/changes/".length).split("/");
+            const slug = parts[0] === "archive" ? parts[1] : parts[0];
+            if (slug && !authors.has(slug)) authors.set(slug, currentAuthor);
+          }
+        }
+        resolve(authors);
+      },
+    );
+  });
+}
+
+export async function getAuthors(repoDir: string): Promise<Map<string, string>> {
+  const absDir = path.resolve(repoDir);
+  const cached = authorCache.get(absDir);
+  if (cached) return cached;
+  const authors = await buildChangeAuthors(absDir);
+  authorCache.set(absDir, authors);
+  return authors;
 }

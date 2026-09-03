@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { parseTasks } from "./tasks.js";
-import { getTimestamps } from "./git-cache.js";
+import { getAuthors, getTimestamps } from "./git-cache.js";
 import { listWorkspaces, toWorktreeSource } from "./worktrees.js";
 import { jjCurrentChangeSlugs } from "./jj-workspaces.js";
 import { discoverArtifacts, countArtifacts, changeDirMtime } from "./artifacts.js";
@@ -174,6 +174,7 @@ export async function scanOpenSpec(repoDir: string): Promise<ScanResult> {
 
   // 取得 git timestamps
   const timestamps = await getTimestamps(repoDir);
+  const authors = await getAuthors(repoDir);
 
   const sortByTimestamp = (a: ChangeInfo, b: ChangeInfo) => {
     const ta = a.timestamp || a.date || "";
@@ -185,6 +186,7 @@ export async function scanOpenSpec(repoDir: string): Promise<ScanResult> {
     .map((slug) => {
       const info = scanChangeDir(path.join(changesDir, slug), slug, "active", defaultSchema);
       info.timestamp = timestamps.get(slug) || null;
+      info.developer = authors.get(slug) || null;
       return info;
     })
     .sort(sortByTimestamp);
@@ -194,6 +196,7 @@ export async function scanOpenSpec(repoDir: string): Promise<ScanResult> {
     .map((slug) => {
       const info = scanChangeDir(path.join(archiveDir, slug), slug, "archived", defaultSchema);
       info.timestamp = timestamps.get(slug) || null;
+      info.developer = authors.get(slug) || null;
       return info;
     })
     .sort(sortByTimestamp);
@@ -224,6 +227,7 @@ export async function readSpec(
 
   // 取得 git timestamp cache
   const timestamps = await getTimestamps(repoDir);
+  const authors = await getAuthors(repoDir);
 
   // 建立歷史紀錄，含日期、git timestamp 與描述
   const base = openspecDir(repoDir);
@@ -234,7 +238,7 @@ export async function readSpec(
     const { date, description } = parseSlug(slug);
     const isArchived = fs.existsSync(path.join(archiveDir, slug));
     const timestamp = timestamps.get(slug) || null;
-    return { slug, date, timestamp, description, status: isArchived ? "archived" : "active" };
+    return { slug, date, timestamp, developer: authors.get(slug) || null, description, status: isArchived ? "archived" : "active" };
   });
 
   // 按 git timestamp 降序排列，無 timestamp 時 fallback 回 slug 日期

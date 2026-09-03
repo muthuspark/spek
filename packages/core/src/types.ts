@@ -10,6 +10,7 @@ export interface HistoryEntry {
   slug: string;
   date: string | null;
   timestamp: string | null;
+  developer?: string | null;
   description: string;
   status: "active" | "archived";
 }
@@ -59,6 +60,8 @@ export interface ChangeInfo {
   createdDate: string | null;
   archivedDate: string | null;
   description: string;
+  /** Author of the latest non-merge commit touching this change's tasks.md. */
+  developer?: string | null;
   status: "active" | "archived";
   hasProposal: boolean;
   hasDesign: boolean;

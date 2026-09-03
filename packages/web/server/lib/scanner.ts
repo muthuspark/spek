@@ -122,8 +122,9 @@ export async function readSpec(
   const relatedChanges = findRelatedChanges(repoDir, topic);
 
   // 取得 git timestamp cache
-  const { getTimestamps } = await import("./git-cache.js");
+  const { getAuthors, getTimestamps } = await import("./git-cache.js");
   const timestamps = await getTimestamps(repoDir);
+  const authors = await getAuthors(repoDir);
 
   // 建立歷史紀錄，含日期、git timestamp 與描述
   const base = openspecDir(repoDir);
@@ -134,7 +135,7 @@ export async function readSpec(
     const { date, description } = parseSlug(slug);
     const isArchived = fs.existsSync(path.join(archiveDir, slug));
     const timestamp = timestamps.get(slug) || null;
-    return { slug, date, timestamp, description, status: isArchived ? "archived" : "active" };
+    return { slug, date, timestamp, developer: authors.get(slug) || null, description, status: isArchived ? "archived" : "active" };
   });
 
   // 按 git timestamp 降序排列，無 timestamp 時 fallback 回 slug 日期

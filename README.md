@@ -330,6 +330,20 @@ npm run build:intellij   # Build IntelliJ webview assets
 npm run type-check       # TypeScript type check
 ```
 
+### Restart the development server (macOS)
+
+When the development server is installed as the `com.spek.dev` LaunchAgent, restart it with:
+
+```bash
+launchctl kickstart -k gui/$(id -u)/com.spek.dev
+```
+
+Verify that it is running with:
+
+```bash
+launchctl print gui/$(id -u)/com.spek.dev
+```
+
 **IntelliJ Plugin build:**
 ```bash
 npm run build:intellij                    # Build frontend assets

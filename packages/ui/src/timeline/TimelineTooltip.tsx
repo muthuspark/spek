@@ -63,6 +63,11 @@ export function TimelineTooltip({
             ({change.archivedDate})
           </div>
         )}
+        {change.developer && (
+          <div>
+            Developer · <span className="spekui-tooltip-value">{change.developer}</span>
+          </div>
+        )}
         <div>
           Duration · <span className="spekui-tooltip-value">{spanLabel}</span>
           {!isArchived && <span className="spekui-tooltip-ongoing"> (ongoing)</span>}
