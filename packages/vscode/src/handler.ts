@@ -203,7 +203,9 @@ export class MessageHandler {
     collectChanges(path.join(changesDir, "archive"));
 
     const fuse = new Fuse(documents, {
-      keys: ["content"],
+      // Search both artifact contents and the change/spec identifier. The displayed
+      // change title is derived from its slug, so name-only matches must be indexed too.
+      keys: ["name", "content"],
       includeScore: true,
       includeMatches: true,
       threshold: 0.4,
