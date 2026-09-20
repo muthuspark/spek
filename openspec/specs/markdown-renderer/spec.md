@@ -19,6 +19,17 @@ The system SHALL render Markdown content using react-markdown with remark-gfm pl
 - **WHEN** MarkdownRenderer receives content containing `- [x]` or `- [ ]` items
 - **THEN** the items are rendered as visual checkboxes (read-only)
 
+### Requirement: D2 diagram rendering
+The system SHALL compile fenced `d2` blocks in Markdown to inline SVG using D2.js.
+
+#### Scenario: Valid D2 diagram
+- **WHEN** MarkdownRenderer receives a valid fenced `d2` block
+- **THEN** it renders the compiled SVG in a responsive diagram container
+
+#### Scenario: Invalid D2 diagram
+- **WHEN** a fenced `d2` block cannot be compiled
+- **THEN** the original D2 source remains visible as a code block
+
 ### Requirement: BDD keyword highlighting
 The system SHALL visually highlight BDD keywords in rendered Markdown content to improve readability of spec documents.
 

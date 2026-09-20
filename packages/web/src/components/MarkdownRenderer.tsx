@@ -1,7 +1,8 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Link } from "react-router-dom";
-import { type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import type { D2 } from "@d2lang/d2";
 import { slugifyHeading } from "@spekjs/core/headings";
 
 // rehype plugin：為 h2/h3 加上 deterministic id（與 extractHeadings 的 slug 演算法一致）。
@@ -110,6 +111,200 @@ function processChildren(children: ReactNode): ReactNode {
   return children;
 }
 
+function structurizrToMermaid(source: string): { diagram: string; title?: string } | null {
+  const modelStart = source.search(/\bmodel\s*\{/);
+  if (modelStart < 0) return null;
+
+  const model = source.slice(modelStart);
+  const modelEnd = model.search(/\n\s*}\s*views\b/);
+  const modelSource = modelEnd >= 0 ? model.slice(0, modelEnd) : model;
+  const elements = new Map<string, { type: string; name: string; description: string; external: boolean }>();
+  const relationships: Array<{ from: string; to: string; description: string }> = [];
+
+  for (const line of modelSource.split("\n")) {
+    const element = line.match(
+      /^\s*([\w-]+)\s*=\s*(person|softwareSystem|container|component)\s+"([^"]+)"(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?/
+    );
+    if (element) {
+      elements.set(element[1], {
+        type: element[2],
+        name: element[3],
+        description: element[4] ?? "",
+        external: element[5] === "External",
+      });
+      continue;
+    }
+
+    const relationship = line.match(/^\s*([\w-]+)\s*->\s*([\w-]+)\s+"([^"]*)"/);
+    if (relationship) {
+      relationships.push({
+        from: relationship[1],
+        to: relationship[2],
+        description: relationship[3],
+      });
+    }
+  }
+
+  if (!elements.size || relationships.some(({ from, to }) => !elements.has(from) || !elements.has(to))) {
+    return null;
+  }
+
+  const escape = (value: string) => value.replace(/"/g, "&quot;").replace(/[\n\r]/g, " ");
+  const lines = ["flowchart TB"];
+  for (const [id, element] of elements) {
+    const type = element.type === "person" ? "Person" : element.type === "softwareSystem" ? "Software System" : element.type;
+    const label = `${escape(element.name)}<br/><small>[${type}]</small>${element.description ? `<br/>${escape(element.description)}` : ""}`;
+    const shape = `["${label}"]`;
+    lines.push(`  ${id}${shape}`);
+    if (element.external) lines.push(`  class ${id} external`);
+  }
+  for (const relationship of relationships) {
+    lines.push(`  ${relationship.from} -->|${escape(relationship.description)}| ${relationship.to}`);
+  }
+  if ([...elements.values()].some(({ external }) => external)) {
+    lines.push("  classDef external fill:#999999,color:#ffffff,stroke:#666666");
+  }
+  const title = source.match(/\btitle\s+"([^"]+)"/)?.[1];
+  return { diagram: lines.join("\n"), title };
+}
+
+function MermaidDiagram({ source, title, fallbackSource = source }: { source: string; title?: string; fallbackSource?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const renderId = `mermaid-${useId().replace(/:/g, "")}`;
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void import("mermaid")
+      .then(({ default: mermaid }) => {
+        if (cancelled) return;
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: "strict",
+          theme: "dark",
+          flowchart: { htmlLabels: true, curve: "linear", nodeSpacing: 50, rankSpacing: 65 },
+          themeVariables: {
+            primaryColor: "#111111",
+            primaryBorderColor: "#999999",
+            primaryTextColor: "#ffffff",
+            lineColor: "#999999",
+            edgeLabelBackground: "#111111",
+          },
+        });
+        return mermaid.render(renderId, source.trim());
+      })
+      .then((result) => {
+        if (cancelled || !result || !containerRef.current) return;
+        containerRef.current.innerHTML = result.svg;
+        result.bindFunctions?.(containerRef.current);
+        setError(false);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      });
+
+    return () => {
+      cancelled = true;
+      if (containerRef.current) containerRef.current.innerHTML = "";
+    };
+  }, [renderId, source]);
+
+  if (error) {
+    return (
+      <pre className="bg-bg-tertiary border border-border rounded-lg p-4 text-sm overflow-x-auto mb-4 leading-relaxed">
+        <code className="language-mermaid">{fallbackSource}</code>
+      </pre>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="mermaid-diagram overflow-x-auto mb-4 rounded-lg border border-border bg-bg-tertiary p-4 [&_svg]:mx-auto [&_svg]:max-w-full"
+      role="img"
+      aria-label="Mermaid diagram"
+    >
+      {title && <div className="mt-3 text-center text-sm text-text-primary">{title}</div>}
+    </div>
+  );
+}
+
+let d2Promise: Promise<D2> | undefined;
+let d2RenderQueue = Promise.resolve();
+
+function getD2(): Promise<D2> {
+  d2Promise ??= import("@d2lang/d2").then(({ D2 }) => new D2());
+  return d2Promise;
+}
+
+function renderD2(source: string, salt: string): Promise<string> {
+  const render = d2RenderQueue.then(async () => {
+    const d2 = await getD2();
+    const compiled = await d2.compile({
+      fs: { index: source.trim() },
+      options: { layout: "tala" },
+    });
+    return d2.render(compiled.diagram, {
+      ...compiled.renderOptions,
+      themeID: 8,
+      darkThemeID: 8,
+      noXMLTag: true,
+      pad: 24,
+      salt,
+    });
+  });
+  d2RenderQueue = render.then(() => undefined, () => undefined);
+  return render;
+}
+
+function D2Diagram({ source }: { source: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const renderId = `d2-${useId().replace(/:/g, "")}`;
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (containerRef.current) containerRef.current.textContent = "Rendering D2 diagram…";
+
+    void renderD2(source, renderId)
+      .then((svg) => {
+        if (cancelled || !containerRef.current) return;
+        containerRef.current.innerHTML = svg;
+        setError(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      if (containerRef.current) containerRef.current.innerHTML = "";
+    };
+  }, [renderId, source]);
+
+  if (error) {
+    return (
+      <pre className="bg-bg-tertiary border border-border rounded-lg p-4 text-sm overflow-x-auto mb-4 leading-relaxed">
+        <code className="language-d2">{source}</code>
+      </pre>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="d2-diagram overflow-x-auto mb-4 rounded-lg border border-border bg-bg-tertiary p-4 text-sm text-text-muted [&_svg]:mx-auto [&_svg]:max-w-full"
+      role="img"
+      aria-label="D2 diagram"
+    >
+      Rendering D2 diagram…
+    </div>
+  );
+}
+
 export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRendererProps) {
   return (
     <div className="markdown-body">
@@ -167,6 +362,20 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
           // 程式碼區塊 — 不做 BDD 高亮
           code({ className, children }) {
             const isBlock = className?.startsWith("language-");
+            const language = className?.replace(/^language-/, "");
+            const source = Array.isArray(children)
+              ? children.join("")
+              : String(children ?? "");
+            if (language === "d2") {
+              return <D2Diagram source={source} />;
+            }
+            if (language === "mermaid" || language === "structurizr" || language === "structurizr-dsl" || language === "dsl") {
+              const converted = language === "mermaid" ? { diagram: source } : structurizrToMermaid(source);
+              if (converted) {
+                return <MermaidDiagram source={converted.diagram} title={converted.title} fallbackSource={source} />;
+              }
+              return <code className={`${className} block`}>{children}</code>;
+            }
             if (isBlock) {
               return (
                 <code className={`${className} block`}>
@@ -192,6 +401,14 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
             );
           },
           pre({ children }) {
+            if (
+              children &&
+              typeof children === "object" &&
+              "type" in children &&
+              (children.type === MermaidDiagram || children.type === D2Diagram)
+            ) {
+              return children;
+            }
             return (
               <pre className="bg-bg-tertiary border border-border rounded-lg p-4 text-sm overflow-x-auto mb-4 leading-relaxed">
                 {children}
