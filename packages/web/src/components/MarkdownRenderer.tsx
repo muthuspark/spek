@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { D2 } from "@d2lang/d2";
 import { slugifyHeading } from "@spekjs/core/headings";
+import { splitFrontMatter, type FrontMatterField } from "../utils/frontMatter";
 
 // rehype plugin：為 h2/h3 加上 deterministic id（與 extractHeadings 的 slug 演算法一致）。
 // 在 hast 階段處理可避免 React Strict Mode 的 double render 讓 counter 翻倍。
@@ -52,16 +53,18 @@ interface MarkdownRendererProps {
   idPrefix?: string;
 }
 
-// BDD 關鍵字樣式對應
+// BDD keyword styles: monospace stamps. Color is muted and kept only where it carries meaning
+// (WHEN/GIVEN = condition, THEN = outcome, MUST/SHALL = obligation, ADDED/MODIFIED = delta kind).
+const BDD_STAMP = "font-mono text-[0.8em] tracking-[0.04em] px-1 py-px rounded-xs";
 const BDD_KEYWORDS: Record<string, string> = {
-  WHEN: "bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded text-sm font-semibold",
-  GIVEN: "bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded text-sm font-semibold",
-  THEN: "bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-sm font-semibold",
-  AND: "bg-gray-500/20 text-gray-400 px-1.5 py-0.5 rounded text-sm font-semibold",
-  MUST: "text-red-400 font-bold",
-  SHALL: "text-red-400 font-bold",
-  ADDED: "bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded text-xs font-semibold",
-  MODIFIED: "bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded text-xs font-semibold",
+  WHEN: `${BDD_STAMP} bg-info/[0.08] text-info`,
+  GIVEN: `${BDD_STAMP} bg-info/[0.08] text-info`,
+  THEN: `${BDD_STAMP} bg-success/[0.08] text-success`,
+  AND: `${BDD_STAMP} bg-black/[0.05] text-text-muted`,
+  MUST: "font-mono text-[0.85em] font-medium text-danger",
+  SHALL: "font-mono text-[0.85em] font-medium text-danger",
+  ADDED: `${BDD_STAMP} bg-success/[0.08] text-success uppercase`,
+  MODIFIED: `${BDD_STAMP} bg-info/[0.08] text-info uppercase`,
 };
 
 const BDD_PATTERN = new RegExp(
@@ -162,7 +165,7 @@ function structurizrToMermaid(source: string): { diagram: string; title?: string
     lines.push(`  ${relationship.from} -->|${escape(relationship.description)}| ${relationship.to}`);
   }
   if ([...elements.values()].some(({ external }) => external)) {
-    lines.push("  classDef external fill:#999999,color:#ffffff,stroke:#666666");
+    lines.push("  classDef external fill:#ebebeb,color:#4d4d4d,stroke:#c9c9c9");
   }
   const title = source.match(/\btitle\s+"([^"]+)"/)?.[1];
   return { diagram: lines.join("\n"), title };
@@ -182,14 +185,16 @@ function MermaidDiagram({ source, title, fallbackSource = source }: { source: st
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: "strict",
-          theme: "dark",
+          theme: "base",
           flowchart: { htmlLabels: true, curve: "linear", nodeSpacing: 50, rankSpacing: 65 },
           themeVariables: {
-            primaryColor: "#111111",
-            primaryBorderColor: "#999999",
-            primaryTextColor: "#ffffff",
-            lineColor: "#999999",
-            edgeLabelBackground: "#111111",
+            fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif",
+            primaryColor: "#ffffff",
+            primaryBorderColor: "#c9c9c9",
+            primaryTextColor: "#171717",
+            lineColor: "#8f8f8f",
+            edgeLabelBackground: "#fafafa",
+            tertiaryColor: "#fafafa",
           },
         });
         return mermaid.render(renderId, source.trim());
@@ -212,7 +217,7 @@ function MermaidDiagram({ source, title, fallbackSource = source }: { source: st
 
   if (error) {
     return (
-      <pre className="bg-bg-tertiary border border-border rounded-lg p-4 text-sm overflow-x-auto mb-4 leading-relaxed">
+      <pre className="card p-4 text-[13px] overflow-x-auto mb-4 leading-relaxed">
         <code className="language-mermaid">{fallbackSource}</code>
       </pre>
     );
@@ -221,11 +226,11 @@ function MermaidDiagram({ source, title, fallbackSource = source }: { source: st
   return (
     <div
       ref={containerRef}
-      className="mermaid-diagram overflow-x-auto mb-4 rounded-lg border border-border bg-bg-tertiary p-4 [&_svg]:mx-auto [&_svg]:max-w-full"
+      className="mermaid-diagram card overflow-x-auto mb-4 p-6 [&_svg]:mx-auto [&_svg]:max-w-full"
       role="img"
       aria-label="Mermaid diagram"
     >
-      {title && <div className="mt-3 text-center text-sm text-text-primary">{title}</div>}
+      {title && <div className="eyebrow mt-3 text-center text-text-muted">{title}</div>}
     </div>
   );
 }
@@ -247,8 +252,8 @@ function renderD2(source: string, salt: string): Promise<string> {
     });
     return d2.render(compiled.diagram, {
       ...compiled.renderOptions,
-      themeID: 8,
-      darkThemeID: 8,
+      // 1 = "Neutral Grey": monochrome, matching the light-only UI.
+      themeID: 1,
       noXMLTag: true,
       pad: 24,
       salt,
@@ -287,7 +292,7 @@ function D2Diagram({ source }: { source: string }) {
 
   if (error) {
     return (
-      <pre className="bg-bg-tertiary border border-border rounded-lg p-4 text-sm overflow-x-auto mb-4 leading-relaxed">
+      <pre className="card p-4 text-[13px] overflow-x-auto mb-4 leading-relaxed">
         <code className="language-d2">{source}</code>
       </pre>
     );
@@ -296,7 +301,7 @@ function D2Diagram({ source }: { source: string }) {
   return (
     <div
       ref={containerRef}
-      className="d2-diagram overflow-x-auto mb-4 rounded-lg border border-border bg-bg-tertiary p-4 text-sm text-text-muted [&_svg]:mx-auto [&_svg]:max-w-full"
+      className="d2-diagram card overflow-x-auto mb-4 p-6 font-mono text-xs text-text-muted [&_svg]:mx-auto [&_svg]:max-w-full"
       role="img"
       aria-label="D2 diagram"
     >
@@ -305,16 +310,32 @@ function D2Diagram({ source }: { source: string }) {
   );
 }
 
-export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRendererProps) {
+// Front matter is document metadata, not content: a quiet mono row above the body.
+function FrontMatterRow({ fields }: { fields: FrontMatterField[] }) {
   return (
-    <div className="markdown-body">
+    <dl className="flex flex-wrap gap-x-6 gap-y-1 mb-8 pb-4 border-b border-border font-mono text-xs">
+      {fields.map((f) => (
+        <div key={f.key} className="flex gap-2 min-w-0">
+          <dt className="eyebrow text-text-faint">{f.key}</dt>
+          <dd className="text-text-muted break-all">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRendererProps) {
+  const { fields, body } = splitFrontMatter(content);
+  return (
+    <div className="markdown-body max-w-[760px] text-[15px] leading-[1.7] text-text-secondary">
+      {fields.length > 0 && <FrontMatterRow fields={fields} />}
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[[rehypeSpekHeadingIds, { idPrefix }]]}
         components={{
           // 段落：套用 BDD 高亮
           p({ children }) {
-            return <p className="mb-4 leading-relaxed">{processChildren(children)}</p>;
+            return <p className="mb-4">{processChildren(children)}</p>;
           },
           // 列表項：套用 BDD 高亮
           li({ children }) {
@@ -322,26 +343,26 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
           },
           // 標題
           h1({ children }) {
-            return <h1 className="text-2xl font-bold mt-6 mb-4 text-text-primary">{children}</h1>;
+            return <h1 className="heading mt-8 mb-5">{children}</h1>;
           },
           h2({ id, children }) {
-            return <h2 id={id} className="text-xl font-bold mt-6 mb-3 text-text-primary border-b border-border pb-2 scroll-mt-20">{children}</h2>;
+            return <h2 id={id} className="text-[22px] leading-tight font-medium tracking-[-0.6px] mt-12 mb-4 text-text-primary border-b border-border pb-3 scroll-mt-24">{children}</h2>;
           },
           h3({ id, children }) {
-            return <h3 id={id} className="text-lg font-semibold mt-5 mb-2 text-text-primary scroll-mt-20">{children}</h3>;
+            return <h3 id={id} className="text-[17px] leading-snug font-medium tracking-[-0.3px] mt-8 mb-2 text-text-primary scroll-mt-24">{children}</h3>;
           },
           h4({ children }) {
-            return <h4 className="text-base font-semibold mt-4 mb-2 text-text-secondary">{children}</h4>;
+            return <h4 className="text-[15px] font-medium mt-6 mb-2 text-text-primary">{children}</h4>;
           },
           h5({ children }) {
-            return <h5 className="text-sm font-semibold mt-3 mb-1 text-text-secondary">{children}</h5>;
+            return <h5 className="eyebrow mt-5 mb-2 text-text-primary">{children}</h5>;
           },
           h6({ children }) {
-            return <h6 className="text-sm font-medium mt-3 mb-1 text-text-muted">{children}</h6>;
+            return <h6 className="eyebrow mt-5 mb-2 text-text-muted">{children}</h6>;
           },
           // 強調
           strong({ children }) {
-            return <strong className="font-bold text-text-primary">{processChildren(children)}</strong>;
+            return <strong className="font-semibold text-text-primary">{processChildren(children)}</strong>;
           },
           em({ children }) {
             return <em className="italic text-text-secondary">{children}</em>;
@@ -351,7 +372,7 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
             return (
               <a
                 href={href}
-                className="text-accent hover:text-accent-hover underline transition-colors"
+                className="text-text-primary underline decoration-border-strong underline-offset-[3px] hover:decoration-text-primary transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -388,14 +409,14 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
               return (
                 <Link
                   to={`/specs/${text}`}
-                  className="bg-bg-tertiary text-accent hover:text-accent-hover px-1.5 py-0.5 rounded text-sm underline decoration-dotted transition-colors"
+                  className="font-mono bg-bg-tertiary shadow-[0_0_0_1px_var(--color-border)] text-success hover:bg-success/[0.08] px-1.5 py-0.5 rounded-xs text-[0.85em] transition-colors"
                 >
                   {text}
                 </Link>
               );
             }
             return (
-              <code className="bg-bg-tertiary text-accent px-1.5 py-0.5 rounded text-sm">
+              <code className="bg-bg-tertiary shadow-[0_0_0_1px_var(--color-border)] text-text-primary px-1.5 py-0.5 rounded-xs text-[0.85em]">
                 {children}
               </code>
             );
@@ -410,7 +431,7 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
               return children;
             }
             return (
-              <pre className="bg-bg-tertiary border border-border rounded-lg p-4 text-sm overflow-x-auto mb-4 leading-relaxed">
+              <pre className="card p-4 text-[13px] text-text-primary overflow-x-auto mb-4 leading-relaxed">
                 {children}
               </pre>
             );
@@ -418,8 +439,8 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
           // 表格
           table({ children }) {
             return (
-              <div className="overflow-x-auto mb-4">
-                <table className="min-w-full border-collapse border border-border text-sm">
+              <div className="card overflow-x-auto mb-6">
+                <table className="min-w-full border-collapse text-sm">
                   {children}
                 </table>
               </div>
@@ -430,14 +451,14 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
           },
           th({ children }) {
             return (
-              <th className="border border-border px-3 py-2 text-left font-semibold text-text-secondary">
+              <th className="eyebrow px-3 py-2 text-left text-text-muted">
                 {children}
               </th>
             );
           },
           td({ children }) {
             return (
-              <td className="border border-border px-3 py-2 text-text-primary">
+              <td className="border-t border-border px-3 py-2 text-text-primary">
                 {children}
               </td>
             );
@@ -449,19 +470,19 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
           // The gutter must fit the widest marker: a bullet is ~7px, but "99." is 22.2px and
           // "100." is 31.1px, so ol gets pl-8 (32px) while ul stays at pl-6 (24px).
           ul({ children }) {
-            return <ul className="list-disc list-outside pl-6 mb-4 space-y-1">{children}</ul>;
+            return <ul className="list-disc list-outside pl-6 mb-4 space-y-1 marker:text-text-faint">{children}</ul>;
           },
           ol({ children }) {
-            return <ol className="list-decimal list-outside pl-8 mb-4 space-y-1">{children}</ol>;
+            return <ol className="list-decimal list-outside pl-8 mb-4 space-y-1 marker:font-mono marker:text-[0.85em] marker:text-text-muted">{children}</ol>;
           },
           // 分隔線
           hr() {
-            return <hr className="border-border my-6" />;
+            return <hr className="border-border my-10" />;
           },
           // 引用
           blockquote({ children }) {
             return (
-              <blockquote className="border-l-4 border-accent pl-4 my-4 text-text-secondary italic">
+              <blockquote className="border-l-2 border-text-primary pl-4 my-6 text-text-secondary">
                 {children}
               </blockquote>
             );
@@ -474,7 +495,7 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
                   type="checkbox"
                   checked={checked}
                   readOnly
-                  className="mr-2 accent-accent"
+                  className="mr-2 accent-[#171717]"
                 />
               );
             }
@@ -482,7 +503,7 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
           },
         }}
       >
-        {content}
+        {body}
       </ReactMarkdown>
     </div>
   );

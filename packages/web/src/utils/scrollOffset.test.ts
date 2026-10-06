@@ -57,5 +57,5 @@ test("scrollOffset: falls back to the fixed app header when no sticky header", (
 
 test("scrollOffset: fallback constant when neither header is present", () => {
   const { doc, cssTop } = fake({});
-  assert.equal(scrollOffset(doc, cssTop), 68);
+  assert.equal(scrollOffset(doc, cssTop), 76);
 });

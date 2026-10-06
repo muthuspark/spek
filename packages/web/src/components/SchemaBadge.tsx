@@ -12,7 +12,7 @@ export function SchemaBadge({
   if (!schema || schema === defaultSchema) return null;
   return (
     <span
-      className="shrink-0 inline-flex items-center rounded border border-border bg-bg-tertiary px-1.5 py-0.5 text-[11px] font-medium text-text-secondary"
+      className="shrink-0 inline-flex items-center rounded-full bg-bg-tertiary shadow-[0_0_0_1px_var(--color-border)] px-2 py-0.5 font-mono text-[11px] text-text-secondary"
       title={`Schema: ${schema}`}
     >
       {schema}

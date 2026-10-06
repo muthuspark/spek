@@ -24,7 +24,7 @@ function HighlightText({ text, query }: { text: string; query: string }) {
     <>
       {parts.map((part, i) =>
         part.toLowerCase() === query.trim().toLowerCase() ? (
-          <mark key={i} className="bg-accent/20 text-accent rounded px-0.5">
+          <mark key={i} className="bg-black/[0.08] text-text-primary font-medium rounded-xs px-0.5">
             {part}
           </mark>
         ) : (
@@ -147,13 +147,13 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-0 bg-bg-primary/70 backdrop-blur-sm" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-xl bg-bg-secondary border border-border rounded-lg shadow-2xl overflow-hidden">
+      <div className="card relative w-full max-w-xl mx-4 overflow-hidden shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_16px_48px_-12px_rgba(0,0,0,0.12)]">
         {/* 搜尋輸入 */}
         <div className="flex items-center border-b border-border px-4">
-          <svg className="w-5 h-5 text-text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-text-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -163,9 +163,9 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search specs and changes..."
-            className="flex-1 bg-transparent text-text-primary px-3 py-3 text-sm outline-none placeholder:text-text-muted"
+            className="flex-1 bg-transparent text-text-primary px-3 py-3.5 text-[15px] outline-none placeholder:text-text-faint"
           />
-          <kbd className="text-xs text-text-muted bg-bg-tertiary px-1.5 py-0.5 rounded border border-border">
+          <kbd className="text-[11px] text-text-muted bg-bg-tertiary px-1.5 py-0.5 rounded-xs shadow-[0_0_0_1px_var(--color-border)]">
             ESC
           </kbd>
         </div>
@@ -177,10 +177,10 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
               <button
                 key={btn.value}
                 onClick={() => setTypeFilter(btn.value)}
-                className={`px-2.5 py-0.5 text-xs rounded-full transition-colors cursor-pointer ${
+                className={`px-2.5 h-6 font-mono text-[11px] rounded-full transition-colors cursor-pointer ${
                   typeFilter === btn.value
-                    ? "bg-accent/20 text-accent"
-                    : "bg-bg-tertiary text-text-muted hover:text-text-secondary"
+                    ? "bg-accent text-white"
+                    : "text-text-muted shadow-[0_0_0_1px_var(--color-border)] hover:text-text-primary"
                 }`}
               >
                 {btn.label}
@@ -210,7 +210,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
 
           {!loading && filteredSpecResults.length > 0 && (
             <div>
-              <div className="px-4 pt-3 pb-1 text-xs font-semibold text-text-muted uppercase tracking-wider">
+              <div className="eyebrow px-4 pt-3 pb-1 text-text-faint">
                 Specs
               </div>
               {filteredSpecResults.map((result) => {
@@ -230,7 +230,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
 
           {!loading && filteredChangeResults.length > 0 && (
             <div>
-              <div className="px-4 pt-3 pb-1 text-xs font-semibold text-text-muted uppercase tracking-wider">
+              <div className="eyebrow px-4 pt-3 pb-1 text-text-faint">
                 Changes
               </div>
               {filteredChangeResults.map((result) => {
@@ -268,7 +268,7 @@ function ResultItem({
     <button
       onClick={onClick}
       className={`w-full text-left px-4 py-2 cursor-pointer transition-colors ${
-        selected ? "bg-bg-tertiary" : "hover:bg-bg-tertiary/50"
+        selected ? "bg-black/[0.05]" : "hover:bg-black/[0.03]"
       }`}
     >
       <div className="text-sm font-medium text-text-primary">

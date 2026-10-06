@@ -40,19 +40,19 @@ function ChangeRow({ c, today, accent, showProgress, showSource }: {
   return (
     <Link
       to={changeTo(c)}
-      className={`block bg-bg-secondary border border-border rounded p-4 hover:border-accent transition-colors${
+      className={`card block p-4 hover:shadow-[0_0_0_1px_var(--color-border-strong)] transition-shadow${
         accent ? " border-l-4 border-l-accent" : ""
       }`}
     >
-      <div className={`flex items-center justify-between gap-4${showProgress ? " mb-2" : ""}`}>
+      <div className={`flex items-center justify-between gap-4${showProgress ? " mb-3" : ""}`}>
         <span className="flex items-center gap-2 min-w-0">
-          <span className={`truncate ${showProgress ? "text-text-primary font-medium" : "text-text-primary"}`}>
+          <span className={`truncate ${showProgress ? "text-text-primary font-medium" : "text-text-secondary"}`}>
             {c.description}
           </span>
           {showSource && c.source && <WorktreeBadge source={c.source} />}
           {c.isCurrent && (
             <span
-              className="shrink-0 text-[11px] text-accent border border-accent/40 rounded px-1.5 py-0.5"
+              className="shrink-0 font-mono text-[11px] text-white bg-accent rounded-full px-2 py-0.5"
               title="目前 jj working copy (@) 正在編輯這個 change"
             >
               editing
@@ -60,7 +60,7 @@ function ChangeRow({ c, today, accent, showProgress, showSource }: {
           )}
           {c.conflictsWith && (
             <span
-              className="shrink-0 text-[11px] text-amber-400 border border-amber-400/40 rounded px-1.5 py-0.5"
+              className="shrink-0 font-mono text-[11px] text-warning bg-warning/[0.08] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-warning)_30%,transparent)] rounded-full px-2 py-0.5"
               title={`此 jj workspace 的版本與 ${c.conflictsWith} 的內容分歧`}
             >
               conflicts with {c.conflictsWith}
@@ -71,7 +71,7 @@ function ChangeRow({ c, today, accent, showProgress, showSource }: {
           <SchemaBadge schema={c.schema} defaultSchema={c.defaultSchema} />
           {meta && (
             <span
-              className="text-text-muted text-xs whitespace-nowrap tracking-wide [word-spacing:0.15em]"
+              className="font-mono text-text-faint text-xs whitespace-nowrap"
               title={meta.tooltip}
             >
               {meta.text}
@@ -86,13 +86,21 @@ function ChangeRow({ c, today, accent, showProgress, showSource }: {
   );
 }
 
+function SectionTitle({ title, count }: { title: string; count: number }) {
+  return (
+    <h2 className="eyebrow text-text-muted mb-3">
+      {title} <span className="text-text-faint">· {count}</span>
+    </h2>
+  );
+}
+
 export function ChangeList() {
   // Aggregation scope comes from the global header control via AggregationScopeContext (consumed by
   // useChanges); this page renders no aggregation control of its own.
   const { data, loading, error } = useChanges();
 
   if (loading) return <p className="text-text-muted">Loading...</p>;
-  if (error) return <p className="text-red-400">Error: {error}</p>;
+  if (error) return <p className="text-danger">Error: {error}</p>;
 
   const active = data?.active ?? [];
   const archived = data?.archived ?? [];
@@ -103,14 +111,17 @@ export function ChangeList() {
   const { inProgress, notStarted } = splitByProgress(active);
 
   const header = (
-    <div>
-      <h1 className="text-2xl font-bold">Changes</h1>
-      {defaultSchema && (
-        <p className="mt-1 text-text-muted text-sm" title="Repo default OpenSpec schema">
-          Default schema: <span className="text-text-secondary">{defaultSchema}</span>
-        </p>
-      )}
-    </div>
+    <header>
+      <p className="eyebrow text-text-muted mb-3">
+        Changes
+        {defaultSchema && (
+          <span className="text-text-faint" title="Repo default OpenSpec schema">
+            {" "}· Default schema: <span className="text-text-muted">{defaultSchema}</span>
+          </span>
+        )}
+      </p>
+      <h1 className="heading">Changes</h1>
+    </header>
   );
 
   if (active.length === 0 && archived.length === 0) {
@@ -123,12 +134,12 @@ export function ChangeList() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {header}
 
       {inProgress.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">In Progress ({inProgress.length})</h2>
+          <SectionTitle title="In Progress" count={inProgress.length} />
           <div className="space-y-2">
             {inProgress.map((c) => (
               <ChangeRow key={changeKey(c)} c={c} today={today} accent showProgress showSource={showSource} />
@@ -139,7 +150,7 @@ export function ChangeList() {
 
       {notStarted.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Not Started ({notStarted.length})</h2>
+          <SectionTitle title="Not Started" count={notStarted.length} />
           <div className="space-y-2">
             {notStarted.map((c) => (
               <ChangeRow
@@ -157,7 +168,7 @@ export function ChangeList() {
 
       {archived.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Archived</h2>
+          <SectionTitle title="Archived" count={archived.length} />
           <div className="space-y-2">
             {archived.map((c) => (
               <ChangeRow

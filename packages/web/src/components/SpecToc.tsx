@@ -22,9 +22,9 @@ export function SpecToc({ headings }: SpecTocProps) {
   return (
     <nav
       aria-label="Table of contents"
-      className="sticky top-6 max-h-[calc(100vh-6rem)] overflow-y-auto text-sm"
+      className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto text-[13px]"
     >
-      <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
+      <div className="eyebrow text-text-primary mb-3">
         On this page
       </div>
       <ul className="space-y-1 border-l border-border">
@@ -32,8 +32,8 @@ export function SpecToc({ headings }: SpecTocProps) {
           const isActive = activeId === h.slug;
           const indentClass = h.level === 3 ? "pl-6" : "pl-3";
           const activeClass = isActive
-            ? "border-l-2 -ml-px border-accent text-accent"
-            : "text-text-muted hover:text-text-primary border-l-2 -ml-px border-transparent";
+            ? "border-l -ml-px border-text-primary text-text-primary"
+            : "text-text-muted hover:text-text-primary border-l -ml-px border-transparent";
           return (
             <li key={h.slug}>
               <a

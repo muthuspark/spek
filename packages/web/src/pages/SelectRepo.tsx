@@ -69,21 +69,39 @@ export function SelectRepo() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary flex items-center justify-center">
-      <div className="w-full max-w-lg p-8">
-        <h1 className="text-3xl font-bold text-accent mb-2 text-center">spek</h1>
-        <p className="text-text-secondary text-center mb-8">OpenSpec Viewer</p>
+    <div className="min-h-screen bg-bg-primary flex items-center justify-center px-4">
+      <div className="w-full max-w-xl py-16">
+        <div className="flex items-center gap-2 text-text-primary mb-16">
+          <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path
+              d="M 20 8.5 C 20 8.5, 23 8.5, 23 11.5 C 23 14.5, 20 16, 16 16 C 12 16, 9 17.5, 9 20.5 C 9 23.5, 12 23.5, 12 23.5"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+            />
+            <path d="M 12.8 8.5 L 14.3 7 L 15.8 8.5 L 14.3 10 Z" fill="currentColor" />
+            <path d="M 16.2 23.5 L 17.7 22 L 19.2 23.5 L 17.7 25 Z" fill="currentColor" />
+          </svg>
+          <span className="text-[17px] font-medium tracking-tight">spek</span>
+        </div>
+
+        <p className="eyebrow text-text-muted mb-3">OpenSpec viewer</p>
+        <h1 className="display mb-4">Open a repo.</h1>
+        <p className="text-text-secondary text-base mb-12">
+          Point spek at any folder that contains an <code className="font-mono text-[0.9em] text-text-primary">openspec/</code> directory.
+        </p>
 
         {/* 路徑輸入 */}
-        <form onSubmit={handleSubmit} className="mb-6">
-          <label className="block text-text-secondary text-sm mb-2">Repo path</label>
+        <form onSubmit={handleSubmit} className="mb-12">
+          <label htmlFor="repo-path" className="eyebrow block text-text-primary mb-3">Repo path</label>
           <div className="flex gap-2">
             <input
+              id="repo-path"
               type="text"
               value={inputPath}
               onChange={(e) => setInputPath(e.target.value)}
               placeholder="/path/to/repo"
-              className="flex-1 bg-bg-tertiary border border-border rounded px-3 py-2 text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:border-accent"
+              className="field flex-1 h-10 px-3 font-mono text-[13px]"
             />
             <button
               type="button"
@@ -91,7 +109,7 @@ export function SelectRepo() {
                 void selectFolder();
               }}
               disabled={pickerLoading}
-              className="px-3 py-2 bg-bg-tertiary border border-border rounded text-text-secondary text-sm hover:text-text-primary transition-colors"
+              className="btn-ghost !h-10"
             >
               {pickerLoading ? "Opening..." : "Browse"}
             </button>
@@ -99,73 +117,77 @@ export function SelectRepo() {
 
           {/* 偵測結果 */}
           {inputPath && !detect.loading && detect.data && (
-            <div className="mt-3">
+            <div className="mt-4 card px-4 py-3">
               {detect.data.hasOpenSpec ? (
-                <div className="flex items-center justify-between">
-                  <span className="text-green-400 text-sm">OpenSpec detected ({detect.data.schema})</span>
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-accent text-bg-primary rounded text-sm font-medium hover:bg-accent-hover transition-colors"
-                  >
+                <div className="flex items-center justify-between gap-4">
+                  <span className="font-mono text-xs text-text-primary">
+                    <span className="text-success mr-2">✓</span>
+                    OpenSpec detected <span className="text-text-muted">({detect.data.schema})</span>
+                  </span>
+                  <button type="submit" className="btn-primary">
                     Open
                   </button>
                 </div>
               ) : (
-                <span className="text-yellow-400 text-sm">No openspec/ directory found</span>
+                <span className="font-mono text-xs text-warning">
+                  <span className="mr-2">!</span>No openspec/ directory found
+                </span>
               )}
             </div>
           )}
           {inputPath && detect.loading && (
-            <p className="mt-3 text-text-muted text-sm">Detecting...</p>
+            <p className="mt-4 font-mono text-xs text-text-muted">Detecting...</p>
           )}
           {detect.error && (
-            <p className="mt-3 text-red-400 text-sm">{detect.error}</p>
+            <p className="mt-4 font-mono text-xs text-danger">{detect.error}</p>
           )}
           {pickerError && (
-            <p className="mt-3 text-red-400 text-sm">{pickerError}</p>
+            <p className="mt-4 font-mono text-xs text-danger">{pickerError}</p>
           )}
         </form>
 
         {/* 最近使用路徑 */}
         {recentPaths.length > 0 && (
           <div>
-            <h3 className="text-text-secondary text-sm mb-2">Recent</h3>
-            <div className="space-y-1">
+            <h3 className="eyebrow text-text-muted mb-3">Recent</h3>
+            <div className="card overflow-hidden divide-y divide-border">
               {recentPaths.map((p) => {
                 const status = pathStatuses[p];
                 return (
-                  <div key={p} className="flex items-center gap-2">
+                  <div key={p} className="group flex items-center hover:bg-bg-tertiary transition-colors">
                     <button
                       onClick={() => {
                         setInputPath(p);
                         if (status === "valid") openRepo(p);
                       }}
-                      className="flex-1 text-left px-3 py-2 bg-bg-secondary border border-border rounded text-sm text-text-primary font-mono hover:border-accent transition-colors flex items-center gap-2"
+                      className="flex-1 min-w-0 text-left px-4 py-3 flex items-center gap-3 cursor-pointer"
+                      title={p}
                     >
                       {/* 狀態指標 */}
                       {status === "checking" && (
-                        <span className="w-4 h-4 border-2 border-text-muted border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                        <span className="w-3.5 h-3.5 border-[1.5px] border-border-strong border-t-transparent rounded-full animate-spin flex-shrink-0" />
                       )}
                       {status === "valid" && (
-                        <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg className="w-3.5 h-3.5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
                       {status === "invalid" && (
-                        <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg className="w-3.5 h-3.5 text-danger flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       )}
-                      <span className="truncate">{getProjectName(p)}</span>
+                      <span className="text-sm text-text-primary font-medium shrink-0">{getProjectName(p)}</span>
+                      <span className="font-mono text-xs text-text-faint truncate">{p}</span>
                     </button>
                     <button
                       onClick={() => removePath(p)}
-                      className="p-2 text-text-muted hover:text-red-400 transition-colors flex-shrink-0"
+                      className="p-3 text-text-faint opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-danger transition flex-shrink-0 cursor-pointer"
                       title="Remove from recent"
                       aria-label={`Remove ${getProjectName(p)} from recent`}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>

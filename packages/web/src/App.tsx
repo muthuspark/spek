@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RepoProvider, useRepo } from "./contexts/RepoContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
 import { RefreshProvider } from "./contexts/RefreshContext";
 import { AggregationScopeProvider } from "./contexts/AggregationScopeContext";
 import { ApiAdapterProvider } from "./api/ApiAdapterContext";
@@ -52,10 +51,8 @@ function AppWithAdapter() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <RepoProvider>
-        <AppWithAdapter />
-      </RepoProvider>
-    </ThemeProvider>
+    <RepoProvider>
+      <AppWithAdapter />
+    </RepoProvider>
   );
 }

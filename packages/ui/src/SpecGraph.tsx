@@ -150,6 +150,7 @@ export function SpecGraph({
     nodeSel
       .filter((d) => d.type === "spec")
       .append("circle")
+      .attr("class", "spekui-node spekui-node--spec")
       .attr("r", (d) => nodeRadius(d))
       .attr("fill", "#f59e0b")
       .attr("fill-opacity", 0.85)
@@ -165,6 +166,7 @@ export function SpecGraph({
       .attr("x", (d) => -nodeRadius(d))
       .attr("y", (d) => -nodeRadius(d) * 0.7)
       .attr("rx", 6)
+      .attr("class", (d) => `spekui-node spekui-node--${d.status === "active" ? "active" : "archived"}`)
       .attr("fill", (d) => (d.status === "active" ? "#22c55e" : "#64748b"))
       .attr("fill-opacity", 0.85)
       .attr("stroke", (d) => (d.status === "active" ? "#4ade80" : "#94a3b8"))

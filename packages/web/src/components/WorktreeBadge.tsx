@@ -9,7 +9,7 @@ export function WorktreeBadge({ source }: { source: NonNullable<ChangeInfo["sour
   const label = isJj ? `jj:${source.branch ?? ""}` : (source.branch ?? "detached");
   return (
     <span
-      className="shrink-0 text-[11px] text-text-muted border border-border rounded px-1.5 py-0.5"
+      className="shrink-0 font-mono text-[11px] text-text-muted shadow-[0_0_0_1px_var(--color-border)] rounded-full px-2 py-0.5"
       title={`${source.path}${isJj ? " (jj workspace)" : ""}`}
     >
       {label}

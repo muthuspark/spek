@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { createHashRouter, RouterProvider } from "react-router-dom";
 import { RepoProvider, useRepo } from "./contexts/RepoContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
 import { ApiAdapterProvider } from "./api/ApiAdapterContext";
 import { AggregationScopeProvider } from "./contexts/AggregationScopeContext";
 import { StaticAdapter } from "./api/StaticAdapter";
@@ -50,10 +49,8 @@ function DemoAppInner() {
 
 export function DemoApp() {
   return (
-    <ThemeProvider>
-      <RepoProvider>
-        <DemoAppInner />
-      </RepoProvider>
-    </ThemeProvider>
+    <RepoProvider>
+      <DemoAppInner />
+    </RepoProvider>
   );
 }

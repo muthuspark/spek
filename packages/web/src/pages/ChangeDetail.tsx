@@ -54,7 +54,7 @@ function TasksTabContent({
           type="checkbox"
           checked={showPendingOnly}
           onChange={(event) => setShowPendingOnly(event.target.checked)}
-          className="h-4 w-4 accent-accent"
+          className="h-4 w-4 accent-[#171717]"
         />
         <span>Show pending only</span>
         {showPendingOnly && (
@@ -67,21 +67,21 @@ function TasksTabContent({
         <div className="space-y-4">
           {visibleSections.map((section) => (
             <div key={section.title}>
-              <h3 className="text-sm font-semibold text-text-secondary mb-2">{section.title}</h3>
-              <div className="space-y-1">
+              <h3 className="eyebrow text-text-muted mb-3">{section.title}</h3>
+              <div className="card divide-y divide-border">
                 {section.tasks.map((task, i) => (
-                  <div key={i} className={`flex items-start gap-2 text-sm ${task.completed ? "opacity-60" : ""}`}>
+                  <div key={i} className="flex items-start gap-3 px-4 py-2.5 text-sm">
                     {task.completed ? (
-                      <svg className="w-4 h-4 mt-0.5 shrink-0 text-green-400" viewBox="0 0 16 16" fill="none">
-                        <circle cx="8" cy="8" r="7" fill="currentColor" opacity="0.2" />
-                        <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg className="w-4 h-4 mt-0.5 shrink-0 text-success" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7.5" fill="currentColor" />
+                        <path d="M5 8l2 2 4-4" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 mt-0.5 shrink-0 text-text-muted" viewBox="0 0 16 16" fill="none">
-                        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+                      <svg className="w-4 h-4 mt-0.5 shrink-0 text-border-strong" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="6.75" stroke="currentColor" strokeWidth="1.5" />
                       </svg>
                     )}
-                    <div className={task.completed ? "text-text-secondary line-through" : "text-text-primary"}>
+                    <div className={task.completed ? "text-text-muted" : "text-text-primary"}>
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{ p: ({ children }) => <>{children}</> }}
@@ -96,7 +96,7 @@ function TasksTabContent({
           ))}
         </div>
       ) : (
-        <p className="rounded border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-muted">
+        <p className="card px-4 py-3 font-mono text-xs text-text-muted"><span className="text-success mr-2">✓</span>
           No pending tasks — everything is complete.
         </p>
       )}
@@ -148,7 +148,7 @@ function ArtifactSortControl({
     <div
       role="group"
       aria-label="Sort artifacts"
-      className="inline-flex items-center gap-0.5 rounded border border-border bg-bg-tertiary p-0.5 text-[11px]"
+      className="segmented font-mono text-[11px] tracking-[0.02em]"
     >
       {SORT_OPTIONS.map((opt) => {
         const active = opt.mode === mode;
@@ -165,10 +165,10 @@ function ArtifactSortControl({
                 : `Sort by ${opt.label.toLowerCase()}`
             }
             className={
-              "rounded px-1.5 py-0.5 transition-colors " +
+              "rounded-[4px] px-2 h-6 transition-colors cursor-pointer whitespace-nowrap " +
               (active
-                ? "bg-bg-secondary text-accent font-medium"
-                : "text-text-muted hover:text-text-secondary")
+                ? "bg-bg-secondary text-text-primary shadow-[0_0_0_1px_var(--color-border)]"
+                : "text-text-muted hover:text-text-primary")
             }
           >
             {opt.label}
@@ -252,7 +252,7 @@ export function ChangeDetail() {
   }, [data, activeTab, location.hash]);
 
   if (loading) return <p className="text-text-muted">Loading...</p>;
-  if (error) return <p className="text-red-400">Error: {error}</p>;
+  if (error) return <p className="text-danger">Error: {error}</p>;
   if (!data) return <p className="text-text-muted">Change not found</p>;
 
   const tabs = artifacts.map((artifact) => ({
@@ -274,15 +274,18 @@ export function ChangeDetail() {
       : "Schema order unavailable — showing default spec-driven order.";
 
   const headerEl = (
-    <div className="pt-2 pb-3">
-      <Link to="/changes" className="text-text-muted text-base font-medium hover:text-accent transition-colors">
+    <div className="pt-2 pb-5">
+      <Link to="/changes" className="text-text-muted text-base font-medium hover:text-text-primary transition-colors">
         &larr; Back to Changes
       </Link>
-      <h1 className="text-2xl font-bold mt-2" title={slug}>{title}</h1>
-      <div className="flex items-center gap-2 mt-2 mb-1">
+      <p className="eyebrow text-text-muted mt-6 mb-2">
+        Change <span className="text-text-faint">· {data.status}</span>
+      </p>
+      <h1 className="heading first-letter:uppercase" title={slug}>{title}</h1>
+      <div className="flex flex-wrap items-center gap-3 mt-4 mb-1">
         <SchemaBadge schema={data.schema} defaultSchema={data.defaultSchema} />
         {lifecycleBanner && (
-          <p className="text-text-muted text-xs tracking-wide [word-spacing:0.15em]">{lifecycleBanner}</p>
+          <p className="font-mono text-text-muted text-xs">{lifecycleBanner}</p>
         )}
         {artifacts.length >= 2 && (
           <div className="ml-auto">
@@ -291,7 +294,7 @@ export function ChangeDetail() {
         )}
       </div>
       {artifacts.length >= 2 && schemaFallback && (
-        <p className="mt-1 flex items-center gap-1 text-text-muted text-[11px]">
+        <p className="mt-2 flex items-center gap-1.5 font-mono text-text-muted text-[11px]">
           <svg className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path
               fillRule="evenodd"

@@ -20,16 +20,16 @@ function DiffView({ topic, entry, currentContent, onClose }: {
   const { data, loading, error } = useSpecAtChange(topic, entry.slug);
 
   if (loading) return <p className="text-text-muted">Loading diff...</p>;
-  if (error) return <p className="text-red-400">Error: {error}</p>;
+  if (error) return <p className="text-danger">Error: {error}</p>;
   if (!data) return null;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Diff: {entry.description}</h2>
+        <h2 className="text-[17px] font-medium tracking-[-0.3px]"><span className="eyebrow text-text-muted mr-2">Diff</span>{entry.description}</h2>
         <button
           onClick={onClose}
-          className="text-sm text-text-muted hover:text-accent transition-colors px-3 py-1 rounded border border-border hover:border-accent"
+          className="btn-ghost"
         >
           Close diff
         </button>
@@ -79,22 +79,23 @@ export function SpecDetail() {
   }, [data, location.hash, compareEntry]);
 
   if (loading) return <p className="text-text-muted">Loading...</p>;
-  if (error) return <p className="text-red-400">Error: {error}</p>;
+  if (error) return <p className="text-danger">Error: {error}</p>;
   if (!data) return <p className="text-text-muted">Spec not found</p>;
 
   const showToc = !compareEntry && headings.length >= TOC_MIN_HEADINGS;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <div>
-        <Link to="/specs" className="text-text-muted text-base font-medium hover:text-accent transition-colors">
+        <Link to="/specs" className="text-text-muted text-base font-medium hover:text-text-primary transition-colors">
           &larr; Back to Specs
         </Link>
-        <h1 className="text-2xl font-bold mt-2">{data.topic}</h1>
+        <p className="eyebrow text-text-muted mt-8 mb-3">Spec</p>
+        <h1 className="heading font-mono !tracking-[-1px]">{data.topic}</h1>
       </div>
 
       <div className={showToc ? "xl:grid xl:grid-cols-[minmax(0,1fr)_16rem] xl:gap-8" : ""}>
-        <div className="min-w-0 space-y-6">
+        <div className="min-w-0 space-y-16">
           {compareEntry ? (
             <DiffView
               topic={data.topic}
@@ -107,7 +108,7 @@ export function SpecDetail() {
           )}
 
           <section>
-            <h2 className="text-lg font-semibold mb-3">History</h2>
+            <h2 className="eyebrow text-text-muted mb-4">History</h2>
             {data.history.length === 0 ? (
               <p className="text-text-muted text-sm">No changes have affected this spec</p>
             ) : (
@@ -118,23 +119,23 @@ export function SpecDetail() {
                   {data.history.map((entry) => (
                     <div
                       key={entry.slug}
-                      className="relative hover:bg-bg-secondary rounded p-2 transition-colors"
+                      className="relative hover:bg-bg-secondary hover:shadow-[0_0_0_1px_var(--color-border)] rounded p-2 transition-colors"
                       title={entry.developer ? `Developer: ${entry.developer}` : undefined}
                     >
                       {/* 時間線圓點 */}
-                      <div className="absolute -left-4 top-3.5 w-2.5 h-2.5 rounded-full border-2 border-accent bg-bg-primary" />
+                      <div className="absolute -left-4 top-3.5 w-2 h-2 rounded-full bg-text-primary ring-4 ring-bg-primary" />
                       <div className="flex items-center gap-2 mb-0.5">
                         {(entry.timestamp || entry.date) && (
-                          <span className="text-text-muted text-xs font-mono" title={entry.timestamp || undefined}>
+                          <span className="text-text-faint text-xs font-mono" title={entry.timestamp || undefined}>
                             {entry.timestamp
                               ? formatRelativeTime(entry.timestamp)
                               : entry.date}
                           </span>
                         )}
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        <span className={`eyebrow !text-[10px] px-1.5 rounded-full ${
                           entry.status === "active"
-                            ? "bg-green-400/10 text-green-400"
-                            : "bg-text-muted/10 text-text-muted"
+                            ? "bg-success/[0.08] text-success"
+                            : "bg-black/[0.05] text-text-muted"
                         }`}>
                           {entry.status}
                         </span>
@@ -142,16 +143,16 @@ export function SpecDetail() {
                       <div className="flex items-center justify-between">
                         <Link
                           to={`/changes/${entry.slug}`}
-                          className="text-sm text-accent hover:underline"
+                          className="text-sm text-text-primary underline decoration-border-strong underline-offset-[3px] hover:decoration-text-primary"
                         >
                           {entry.description}
                         </Link>
                         <button
                           onClick={() => setCompareEntry(compareEntry?.slug === entry.slug ? null : entry)}
-                          className={`text-xs px-2 py-0.5 rounded border transition-colors ${
+                          className={`font-mono text-[11px] h-6 px-2 rounded transition-colors cursor-pointer ${
                             compareEntry?.slug === entry.slug
-                              ? "border-accent text-accent bg-accent/10"
-                              : "border-border text-text-muted hover:text-accent hover:border-accent"
+                              ? "bg-accent text-white"
+                              : "text-text-muted shadow-[0_0_0_1px_var(--color-border)] hover:text-text-primary hover:shadow-[0_0_0_1px_var(--color-border-strong)]"
                           }`}
                         >
                           {compareEntry?.slug === entry.slug ? "Comparing" : "Compare"}

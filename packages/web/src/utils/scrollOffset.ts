@@ -3,7 +3,7 @@
 // TOC 時目標 heading 捲到 header 底下被遮住、看起來跳到下一節。故此處以實際 DOM 動態量測遮蔽高度。
 
 const GAP = 12; // heading 落在遮蔽底邊下方留一點呼吸空間
-const APP_HEADER_HEIGHT = 56; // Layout 的 fixed app header（h-14）
+const APP_HEADER_HEIGHT = 64; // Layout 的 fixed app header（h-16）
 const FALLBACK = APP_HEADER_HEIGHT + GAP; // 量不到任何 header 時的保底
 
 /** 純計算：把目標元素捲到遮蔽下方所需的 window.scrollY（不為負）。 */

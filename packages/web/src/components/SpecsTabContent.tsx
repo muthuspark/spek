@@ -9,10 +9,12 @@ interface SpecsTabContentProps {
 // （例如兩 spec 同時有 `### Requirement: Foo`）。
 export function SpecsTabContent({ specs }: SpecsTabContentProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       {specs.map((spec) => (
         <section key={spec.topic} id={`spec-${spec.topic}`}>
-          <h3 className="text-sm font-semibold text-accent mb-2">{spec.topic}</h3>
+          <h3 className="eyebrow text-text-muted mb-3">
+            <span className="text-text-faint">spec /</span> {spec.topic}
+          </h3>
           <MarkdownRenderer content={spec.content} idPrefix={`${spec.topic}--`} />
         </section>
       ))}

@@ -59,19 +59,38 @@
   flex-shrink: 0;
 }
 
-/* 節點的配色是這個視覺化自己的調色盤，不是宿主的主題色 —— 因此寫死，不走顏色契約。 */
+/*
+ * Node palette. It is the visualization's own palette, not part of the 8-variable color contract,
+ * so each value has a built-in default. A host MAY override the optional `--spek-node-*` variables
+ * to re-skin the nodes; leaving them unset keeps the defaults below.
+ */
+.spekui-node--spec {
+  fill: var(--spek-node-spec, #f59e0b);
+  stroke: var(--spek-node-spec-stroke, #fbbf24);
+}
+
+.spekui-node--active {
+  fill: var(--spek-node-active, #22c55e);
+  stroke: var(--spek-node-active-stroke, #4ade80);
+}
+
+.spekui-node--archived {
+  fill: var(--spek-node-archived, #64748b);
+  stroke: var(--spek-node-archived-stroke, #94a3b8);
+}
+
 .spekui-legend-swatch--spec {
   height: 0.75rem;
   border-radius: 9999px;
-  background-color: #f59e0b;
+  background-color: var(--spek-node-spec, #f59e0b);
 }
 
 .spekui-legend-swatch--active {
-  background-color: #22c55e;
+  background-color: var(--spek-node-active, #22c55e);
 }
 
 .spekui-legend-swatch--archived {
-  background-color: #64748b;
+  background-color: var(--spek-node-archived, #64748b);
 }
 
 /* ── ChangeTimeline ────────────────────────────────────────────────────── */

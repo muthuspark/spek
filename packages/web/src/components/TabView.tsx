@@ -30,15 +30,15 @@ export function TabView({ tabs, header, sticky, activeId: controlledId, onChange
   const tabBar = (
     <>
       {header}
-      <div className="flex border-b border-border">
+      <div className="flex border-b border-border overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveId(tab.id)}
-            className={`px-4 py-2 text-sm transition-colors border-b-2 -mb-px ${
+            className={`px-3 py-2.5 text-sm transition-colors border-b-2 -mb-px cursor-pointer ${
               tab.id === activeId
-                ? "border-accent text-accent"
-                : "border-transparent text-text-secondary hover:text-text-primary"
+                ? "border-text-primary text-text-primary"
+                : "border-transparent text-text-muted hover:text-text-primary"
             }`}
           >
             {tab.label}
@@ -51,13 +51,13 @@ export function TabView({ tabs, header, sticky, activeId: controlledId, onChange
   return (
     <div>
       {sticky ? (
-        <div data-spek-scroll-offset className="sticky top-14 z-[5] bg-bg-primary -mx-6 px-6 pb-px">
+        <div data-spek-scroll-offset className="sticky top-16 z-[5] bg-bg-primary/90 backdrop-blur-xl -mx-4 px-4 md:-mx-8 md:px-8 pb-px">
           {tabBar}
         </div>
       ) : (
         <div className="mb-4">{tabBar}</div>
       )}
-      <div key={activeId} className={`animate-fade-in ${sticky ? "mt-4" : ""}`}>
+      <div key={activeId} className={`animate-fade-in ${sticky ? "mt-6" : ""}`}>
         {activeTab?.content}
       </div>
     </div>

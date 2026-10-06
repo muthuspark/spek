@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { RepoProvider, useRepo } from "./contexts/RepoContext";
-import { ThemeProvider, useThemeControl } from "./contexts/ThemeContext";
 import { RefreshProvider, useRefresh } from "./contexts/RefreshContext";
 import { AggregationScopeProvider } from "./contexts/AggregationScopeContext";
 import { ApiAdapterProvider } from "./api/ApiAdapterContext";
@@ -23,7 +22,6 @@ function getUrlParam(name: string): string {
 
 const INTELLIJ_PROJECT_PATH = getUrlParam("projectPath");
 const INTELLIJ_API_BASE = getUrlParam("apiBase");
-const INTELLIJ_THEME = getUrlParam("theme") || "dark";
 
 // URL hash 可作為初始路由（fallback 外部瀏覽器導覽用）
 const initialPath = window.location.hash
@@ -53,7 +51,6 @@ const router = createMemoryRouter(
 
 function IntellijAppInner() {
   const { setRepoPath } = useRepo();
-  const { setTheme } = useThemeControl();
   const refresh = useRefresh();
   const [ready, setReady] = useState(false);
 
@@ -69,9 +66,6 @@ function IntellijAppInner() {
       setRepoPath(INTELLIJ_PROJECT_PATH);
     }
 
-    setTheme(INTELLIJ_THEME as "dark" | "light");
-    document.documentElement.classList.add(INTELLIJ_THEME);
-
     setReady(true);
 
     // 監聽 spek 自訂事件（由 JCEF executeJavaScript 觸發）
@@ -82,21 +76,15 @@ function IntellijAppInner() {
       const path = (e as CustomEvent).detail?.path;
       if (path) router.navigate(path);
     };
-    const handleThemeChange = (e: Event) => {
-      const theme = (e as CustomEvent).detail?.theme;
-      if (theme) setTheme(theme);
-    };
 
     window.addEventListener("spek:fileChanged", handleRefresh);
     window.addEventListener("spek:navigate", handleNavigate);
-    window.addEventListener("spek:themeChange", handleThemeChange);
 
     return () => {
       window.removeEventListener("spek:fileChanged", handleRefresh);
       window.removeEventListener("spek:navigate", handleNavigate);
-      window.removeEventListener("spek:themeChange", handleThemeChange);
     };
-  }, [setRepoPath, setTheme, refresh]);
+  }, [setRepoPath, refresh]);
 
   if (!ready) {
     return (
@@ -117,12 +105,10 @@ function IntellijAppInner() {
 
 export function IntellijApp() {
   return (
-    <ThemeProvider>
-      <RepoProvider>
-        <RefreshProvider>
-          <IntellijAppInner />
-        </RefreshProvider>
-      </RepoProvider>
-    </ThemeProvider>
+    <RepoProvider>
+      <RefreshProvider>
+        <IntellijAppInner />
+      </RefreshProvider>
+    </RepoProvider>
   );
 }

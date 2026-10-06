@@ -19,7 +19,7 @@ export function Dashboard() {
     return <p className="text-text-muted">Loading...</p>;
   }
   if (overview.error) {
-    return <p className="text-red-400">Error: {overview.error}</p>;
+    return <p className="text-danger">Error: {overview.error}</p>;
   }
 
   const data = overview.data!;
@@ -53,31 +53,34 @@ export function Dashboard() {
   ).length;
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Overview</h1>
+    <div className="space-y-16">
+      <header>
+        <p className="eyebrow text-text-muted mb-3">Overview</p>
+        <h1 className="heading">Project status</h1>
+      </header>
 
-      {/* 統計卡片 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Stat grid: one card, cells split by hairlines */}
+      <div className="card overflow-hidden grid grid-cols-2 md:grid-cols-4 gap-px bg-border">
         <StatCard label="Specs" value={data.specsCount} delay={0} />
-        <StatCard label="Active Changes" value={data.changesCount.active} delay={80} />
-        <StatCard label="Archived Changes" value={data.changesCount.archived} delay={160} />
-        <StatCard label="Task Completion" value={`${taskPercent}%`} delay={240} />
-        <StatCard label="Avg lifecycle (archived)" value={avgLifecycle} delay={320} />
-        <StatCard label="Stale active (>30d)" value={staleActiveCount} delay={400} />
-        <StatCard label="Not started" value={notStartedValue} delay={480} />
+        <StatCard label="Active changes" value={data.changesCount.active} delay={40} />
+        <StatCard label="Archived changes" value={data.changesCount.archived} delay={80} />
+        <StatCard label="Task completion" value={`${taskPercent}%`} delay={120} />
+        <StatCard label="Avg lifecycle (archived)" value={avgLifecycle} delay={160} />
+        <StatCard label="Stale active (>30d)" value={staleActiveCount} delay={200} />
+        <StatCard label="Not started" value={notStartedValue} delay={240} className="col-span-2" />
       </div>
 
       {/* Active changes, split by whether the work has actually begun */}
       <section>
-        <h2 className="text-lg font-semibold mb-3">Active Changes</h2>
+        <SectionHeader title="Active changes" />
         {activeChanges.length === 0 ? (
           <p className="text-text-muted text-sm">No active changes</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-8">
             {inProgress.length > 0 && (
               <div>
-                <h3 className="text-text-secondary text-sm font-medium mb-2">
-                  In Progress ({inProgress.length})
+                <h3 className="eyebrow text-text-muted mb-3">
+                  In progress <span className="text-text-faint">· {inProgress.length}</span>
                 </h3>
                 <div className="space-y-2">
                   {inProgress.map((c) => (
@@ -88,8 +91,8 @@ export function Dashboard() {
             )}
             {notStarted.length > 0 && (
               <div>
-                <h3 className="text-text-secondary text-sm font-medium mb-2">
-                  Not Started ({notStarted.length})
+                <h3 className="eyebrow text-text-muted mb-3">
+                  Not started <span className="text-text-faint">· {notStarted.length}</span>
                 </h3>
                 <div className="space-y-2">
                   {notStarted.map((c) => (
@@ -104,25 +107,25 @@ export function Dashboard() {
 
       {/* 最近封存 */}
       <section>
-        <h2 className="text-lg font-semibold mb-3">Recently Archived</h2>
+        <SectionHeader title="Recently archived" />
         {archivedChanges.length === 0 ? (
           <p className="text-text-muted text-sm">No archived changes</p>
         ) : (
-          <div className="space-y-1">
+          <div className="card overflow-hidden divide-y divide-border">
             {archivedChanges.map((c) => (
               <Link
                 key={changeKey(c)}
                 to={changeTo(c)}
-                className="flex items-center justify-between gap-4 px-3 py-2 rounded hover:bg-bg-secondary transition-colors"
+                className="flex items-center justify-between gap-4 px-4 py-2.5 hover:bg-bg-tertiary transition-colors"
               >
                 <span className="flex items-center gap-2 min-w-0">
-                  <span className="text-text-primary text-sm truncate">{c.description}</span>
+                  <span className="text-text-secondary text-sm truncate">{c.description}</span>
                   {showSource && c.source && <WorktreeBadge source={c.source} />}
                 </span>
                 <span className="flex items-center gap-2 shrink-0">
                   <SchemaBadge schema={c.schema} defaultSchema={c.defaultSchema} />
                   {(c.timestamp || c.date) && (
-                    <span className="text-text-muted text-xs whitespace-nowrap" title={c.timestamp || undefined}>
+                    <span className="font-mono text-text-faint text-xs whitespace-nowrap" title={c.timestamp || undefined}>
                       {c.timestamp ? formatRelativeTime(c.timestamp) : c.date}
                     </span>
                   )}
@@ -135,22 +138,40 @@ export function Dashboard() {
 
       {/* 導覽卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Link
-          to="/specs"
-          className="bg-bg-secondary border border-border rounded p-6 hover:border-accent transition-colors"
-        >
-          <h3 className="font-semibold mb-1">Specs</h3>
-          <p className="text-text-secondary text-sm">Browse all spec topics</p>
-        </Link>
-        <Link
-          to="/changes"
-          className="bg-bg-secondary border border-border rounded p-6 hover:border-accent transition-colors"
-        >
-          <h3 className="font-semibold mb-1">Changes</h3>
-          <p className="text-text-secondary text-sm">View change timeline</p>
-        </Link>
+        <NavCard to="/specs" eyebrow="Specs" title="Browse spec topics" body="The source of truth for current behavior." />
+        <NavCard to="/changes" eyebrow="Changes" title="View every change" body="Proposals, designs and tasks in flight." inverted />
       </div>
     </div>
+  );
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return <h2 className="text-[22px] leading-tight font-medium tracking-[-0.6px] mb-5">{title}</h2>;
+}
+
+function NavCard({ to, eyebrow, title, body, inverted = false }: {
+  to: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+  inverted?: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className={`group block rounded p-6 transition-colors ${
+        inverted
+          ? "bg-bg-inverted text-white hover:bg-accent-hover"
+          : "card hover:shadow-[0_0_0_1px_var(--color-border-strong)]"
+      }`}
+    >
+      <p className={`eyebrow mb-6 ${inverted ? "text-text-faint" : "text-text-muted"}`}>{eyebrow}</p>
+      <h3 className="text-[22px] leading-tight font-medium tracking-[-0.6px] flex items-center gap-2">
+        {title}
+        <span className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">&rarr;</span>
+      </h3>
+      <p className={`mt-1 text-sm ${inverted ? "text-border-strong" : "text-text-secondary"}`}>{body}</p>
+    </Link>
   );
 }
 
@@ -158,9 +179,9 @@ function ActiveChangeRow({ c, showSource }: { c: ChangeInfo; showSource: boolean
   return (
     <Link
       to={changeTo(c)}
-      className="block bg-bg-secondary border border-border rounded p-4 hover:border-accent transition-colors"
+      className="card block p-4 hover:shadow-[0_0_0_1px_var(--color-border-strong)] transition-shadow"
     >
-      <div className="flex items-center justify-between gap-4 mb-2">
+      <div className="flex items-center justify-between gap-4 mb-3">
         <span className="flex items-center gap-2 min-w-0">
           <span className="text-text-primary font-medium truncate">{c.description}</span>
           {showSource && c.source && <WorktreeBadge source={c.source} />}
@@ -168,7 +189,7 @@ function ActiveChangeRow({ c, showSource }: { c: ChangeInfo; showSource: boolean
         <span className="flex items-center gap-2 shrink-0">
           <SchemaBadge schema={c.schema} defaultSchema={c.defaultSchema} />
           {(c.timestamp || c.date) && (
-            <span className="text-text-muted text-xs whitespace-nowrap" title={c.timestamp || undefined}>
+            <span className="font-mono text-text-faint text-xs whitespace-nowrap" title={c.timestamp || undefined}>
               {c.timestamp ? formatRelativeTime(c.timestamp) : c.date}
             </span>
           )}
@@ -179,14 +200,21 @@ function ActiveChangeRow({ c, showSource }: { c: ChangeInfo; showSource: boolean
   );
 }
 
-function StatCard({ label, value, delay = 0 }: { label: string; value: string | number; delay?: number }) {
+function StatCard({ label, value, delay = 0, className = "" }: {
+  label: string;
+  value: string | number;
+  delay?: number;
+  className?: string;
+}) {
   return (
     <div
-      className="bg-bg-secondary border border-border rounded p-4 animate-fade-in-up"
+      className={`bg-bg-secondary p-5 animate-fade-in-up ${className}`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="text-4xl font-bold text-accent">{value}</div>
-      <div className="text-text-secondary text-sm">{label}</div>
+      <div className="eyebrow text-text-muted">{label}</div>
+      <div className="mt-4 text-[40px] leading-none font-[450] tracking-[-2px] text-text-primary tabular-nums">
+        {value}
+      </div>
     </div>
   );
 }

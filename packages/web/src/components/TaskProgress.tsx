@@ -5,20 +5,20 @@ interface TaskProgressProps {
 
 export function TaskProgress({ completed, total }: TaskProgressProps) {
   if (total === 0) {
-    return <span className="text-text-muted text-sm">No tasks</span>;
+    return <span className="eyebrow text-text-faint">No tasks</span>;
   }
 
   const percent = Math.round((completed / total) * 100);
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-2 bg-bg-tertiary rounded-full overflow-hidden">
+      <div className="flex-1 h-1 bg-border rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${completed === total ? "bg-green-500" : "bg-accent"}`}
+          className={`h-full rounded-full transition-all ${completed === total ? "bg-success" : "bg-accent"}`}
           style={{ width: `${percent}%` }}
         />
       </div>
-      <span className="text-text-secondary text-sm whitespace-nowrap">
+      <span className="font-mono text-xs text-text-muted whitespace-nowrap tabular-nums">
         {completed} / {total}
       </span>
     </div>

@@ -1,7 +1,6 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { useRepo } from "../contexts/RepoContext";
-import { useTheme } from "../contexts/ThemeContext";
 import { useFileWatcher } from "../hooks/useFileWatcher";
 import { Sidebar } from "./Sidebar";
 import { SearchDialog } from "./SearchDialog";
@@ -13,7 +12,6 @@ function getWorkspaceName(workspacePath: string): string {
 
 export function Layout() {
   const { repoPath } = useRepo();
-  const { theme, toggleTheme } = useTheme();
   useFileWatcher();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -77,23 +75,23 @@ export function Layout() {
       {/* Header */}
       <header
         data-spek-app-header
-        className="fixed top-0 left-0 right-0 h-14 bg-bg-secondary border-b border-border flex items-center px-4 z-10"
+        className="fixed top-0 left-0 right-0 h-16 bg-bg-primary/80 backdrop-blur-xl border-b border-border flex items-center gap-3 px-4 md:px-6 z-10"
       >
         {isMobile && (
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label="Open navigation menu"
-            className="p-2 mr-2 rounded text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer"
+            className="p-1.5 -ml-1.5 rounded text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7h16M4 12h16M4 17h16" />
             </svg>
           </button>
         )}
         <Link
           to="/"
           aria-label="Go to spek home"
-          className="text-accent font-bold text-lg flex items-center gap-1.5"
+          className="flex items-center gap-2 text-text-primary text-[15px] font-medium tracking-tight"
         >
           <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none">
             <path
@@ -102,55 +100,43 @@ export function Layout() {
               strokeWidth="3.5"
               strokeLinecap="round"
             />
-            <path d="M 12.8 8.5 L 14.3 7 L 15.8 8.5 L 14.3 10 Z" fill="currentColor" opacity="0.9" />
-            <path d="M 16.2 23.5 L 17.7 22 L 19.2 23.5 L 17.7 25 Z" fill="currentColor" opacity="0.7" />
+            <path d="M 12.8 8.5 L 14.3 7 L 15.8 8.5 L 14.3 10 Z" fill="currentColor" />
+            <path d="M 16.2 23.5 L 17.7 22 L 19.2 23.5 L 17.7 25 Z" fill="currentColor" />
           </svg>
           spek
         </Link>
-        <div className="flex-1 flex justify-center">
+        {!isMobile && (
+          <>
+            <span className="text-border-strong text-lg font-light select-none" aria-hidden="true">/</span>
+            <span className="font-mono text-[13px] text-text-secondary truncate max-w-64" title={repoPath}>
+              {getWorkspaceName(repoPath)}
+            </span>
+          </>
+        )}
+        <div className="flex-1 flex justify-center px-2">
           <button
             onClick={() => setSearchOpen(true)}
-            className="px-4 py-1.5 rounded bg-bg-tertiary text-text-muted text-sm hover:text-text-secondary hover:bg-bg-tertiary/80 transition-colors flex items-center gap-2 cursor-pointer"
+            className="w-full max-w-sm h-8 px-3 rounded bg-bg-secondary text-text-faint text-sm shadow-[0_0_0_1px_var(--color-border)] hover:shadow-[0_0_0_1px_var(--color-border-strong)] hover:text-text-muted transition-shadow flex items-center gap-2 cursor-pointer"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Search...
-            <kbd className="text-xs bg-bg-primary/50 px-1.5 py-0.5 rounded border border-border ml-2">
+            <span className="flex-1 text-left">Search...</span>
+            <kbd className="text-[11px] text-text-muted bg-bg-tertiary px-1.5 py-0.5 rounded-xs shadow-[0_0_0_1px_var(--color-border)]">
               ⌘K
             </kbd>
           </button>
         </div>
-        <div className="mr-2">
-          <AggregationScopeControl isMobile={isMobile} />
-        </div>
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer"
-          title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-        >
-          {theme === "dark" ? (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          ) : (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          )}
-        </button>
-        {!isMobile && (
-          <span className="text-text-muted text-sm font-mono truncate max-w-80" title={repoPath}>
-            {getWorkspaceName(repoPath)}
-          </span>
-        )}
+        <AggregationScopeControl isMobile={isMobile} />
       </header>
 
       <Sidebar open={sidebarOpen} isMobile={isMobile} collapsed={collapsed} onClose={() => setSidebarOpen(false)} onToggle={toggleCollapsed} />
 
       {/* Main content */}
-      <main className={`pt-18 p-6 transition-all duration-200 ${isMobile ? "" : collapsed ? "ml-14" : "ml-60"}`}>
-        <Outlet />
+      <main className={`pt-24 pb-16 px-4 md:px-8 transition-all duration-200 ${isMobile ? "" : collapsed ? "ml-14" : "ml-60"}`}>
+        <div className="mx-auto max-w-[1280px]">
+          <Outlet />
+        </div>
       </main>
 
       <SearchDialog open={searchOpen} onClose={closeSearch} />

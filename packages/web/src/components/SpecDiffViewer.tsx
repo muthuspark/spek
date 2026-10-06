@@ -15,24 +15,24 @@ export function SpecDiffViewer({ oldContent, newContent, oldLabel, newLabel }: S
 
   if (!hasChanges) {
     return (
-      <div className="rounded-lg border border-border bg-bg-secondary p-6 text-center">
+      <div className="card p-6 text-center">
         <p className="text-text-muted">No differences found</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-border overflow-hidden">
+    <div className="card overflow-hidden">
       {(oldLabel || newLabel) && (
-        <div className="flex items-center gap-4 px-4 py-2 bg-bg-secondary border-b border-border text-xs text-text-muted">
-          {oldLabel && <span className="text-red-400">--- {oldLabel}</span>}
-          {newLabel && <span className="text-green-400">+++ {newLabel}</span>}
+        <div className="flex items-center gap-4 px-4 py-2 bg-bg-tertiary border-b border-border font-mono text-xs text-text-muted">
+          {oldLabel && <span className="text-danger">--- {oldLabel}</span>}
+          {newLabel && <span className="text-success">+++ {newLabel}</span>}
         </div>
       )}
       <div className="overflow-x-auto">
         {/* w-max min-w-full: rows share the widest row's width so tints span the full
             scrolled area instead of stopping at the first viewport width */}
-        <pre className="text-sm leading-relaxed w-max min-w-full">
+        <pre className="text-[13px] leading-relaxed w-max min-w-full text-text-secondary">
           {changes.map((change, i) => (
             <DiffBlock key={i} change={change} />
           ))}
@@ -71,7 +71,7 @@ function DiffBlock({ change }: { change: Change }) {
             {line}
           </div>
         ))}
-        <div className="py-1 bg-bg-secondary text-text-muted text-xs border-y border-border">
+        <div className="py-1 bg-bg-tertiary text-text-faint text-xs border-y border-border">
           {/* sticky left-0: the bar itself spans the full scroll width, but its label stays
               pinned in view instead of centering into the middle of a wide diff */}
           <span className="sticky left-0 inline-block px-4">
@@ -88,8 +88,8 @@ function DiffBlock({ change }: { change: Change }) {
     );
   }
 
-  const bgClass = change.added ? "bg-green-400/10" : "bg-red-400/10";
-  const textClass = change.added ? "text-green-400" : "text-red-400";
+  const bgClass = change.added ? "bg-success/[0.07]" : "bg-danger/[0.07]";
+  const textClass = change.added ? "text-success" : "text-danger";
   const prefix = change.added ? "+" : "-";
 
   return (

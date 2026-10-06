@@ -4,7 +4,6 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import { RepoProvider, useRepo } from "./contexts/RepoContext";
-import { ThemeProvider, useThemeControl } from "./contexts/ThemeContext";
 import { RefreshProvider } from "./contexts/RefreshContext";
 import { AggregationScopeProvider } from "./contexts/AggregationScopeContext";
 import { ApiAdapterProvider } from "./api/ApiAdapterContext";
@@ -39,7 +38,6 @@ const router = createMemoryRouter([
 
 function WebviewAppInner() {
   const { setRepoPath } = useRepo();
-  const { setTheme } = useThemeControl();
   const adapter = useMemo(() => new MessageAdapter(), []);
   const [ready, setReady] = useState(false);
 
@@ -52,14 +50,7 @@ function WebviewAppInner() {
         if (msg.workspacePath) {
           setRepoPath(msg.workspacePath);
         }
-        if (msg.theme) {
-          setTheme(msg.theme);
-        }
         setReady(true);
-      }
-
-      if (msg.type === "themeChange") {
-        setTheme(msg.theme);
       }
 
       if (msg.type === "openSearch") {
@@ -76,7 +67,7 @@ function WebviewAppInner() {
 
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [setRepoPath, setTheme]);
+  }, [setRepoPath]);
 
   if (!ready) {
     return (
@@ -99,10 +90,8 @@ function WebviewAppInner() {
 
 export function WebviewApp() {
   return (
-    <ThemeProvider>
-      <RepoProvider>
-        <WebviewAppInner />
-      </RepoProvider>
-    </ThemeProvider>
+    <RepoProvider>
+      <WebviewAppInner />
+    </RepoProvider>
   );
 }

@@ -1,26 +1,63 @@
 @import "tailwindcss";
 @import "@spekjs/ui/styles.css";
 
+/*
+ * Visual system: "typeset terminal on white paper" (see DESIGN.md at the repo root).
+ *
+ * Light only. The chrome is monochrome: #fafafa canvas, #ffffff cards, #ebebeb hairlines,
+ * #171717 ink. Chromatic color exists only where it carries meaning (diffs, BDD keywords,
+ * status), and even there it is muted.
+ */
 @theme {
-  --color-bg-primary: #0a0c0f;
-  --color-bg-secondary: #111318;
-  --color-bg-tertiary: #1a1d24;
-  --color-border: #2a2d35;
-  --color-text-primary: #e2e8f0;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
-  --color-accent: #f59e0b;
-  --color-accent-hover: #d97706;
+  /* Surfaces */
+  --color-bg-primary: #fafafa;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f5f5f5;
+  --color-bg-inverted: #171717;
+
+  /* Hairlines */
+  --color-border: #ebebeb;
+  --color-border-strong: #c9c9c9;
+
+  /* Ink scale — the only "color" in the type system */
+  --color-text-primary: #171717;
+  --color-text-secondary: #4d4d4d;
+  --color-text-muted: #666666;
+  --color-text-faint: #8f8f8f;
+
+  /* Accent = ink. The primary action is the darkest thing on the page. */
+  --color-accent: #171717;
+  --color-accent-hover: #383838;
+
+  /* Semantic, muted — use only where color carries meaning */
+  --color-success: #297a3a;
+  --color-danger: #b4232a;
+  --color-warning: #8a5a00;
+  --color-info: #2f5d9a;
+
+  /* Type */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Radius: 6px on every card, button and bordered box; 2px for tiny nav marks */
+  --radius-xs: 2px;
+  --radius-sm: 6px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+
+  /* Depth comes from hairline rings, never drop shadows */
+  --shadow-ring: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 0 0 2px #fafafa;
+  --shadow-ring-hairline: 0 0 0 1px #ebebeb;
 }
 
 /*
- * `@spekjs/ui` 的顏色契約 —— 把套件的 8 個變數接到 web 既有的 token 上。
+ * `@spekjs/ui` color contract — wire the package's 8 variables to the web tokens.
  *
- * 套件擁有自己的變數名（`--spek-*`），不讀宿主的 token —— 否則換一個 token 命名不同的宿主
- * （下游的 Electron app 就是），圖會完全沒有顏色。這裡是「宿主換膚」的那一步：**只需覆寫這 8 個**。
- *
- * 必須在套件的 `styles.css` 之後（同為 `:root`，後者勝出），且因為值是 `var(--color-*)`，
- * 淺色主題的切換會自動跟著走 —— 不必為 `[data-theme="light"]` 再寫一份。
+ * The package owns its own variable names (`--spek-*`) and never reads the host's tokens, so a
+ * host with different token names still gets colors. This block is the host re-skin step: only
+ * these 8 need overriding. It must come after the package's `styles.css` (both are `:root`; the
+ * later one wins).
  */
 :root {
   --spek-bg-primary: var(--color-bg-primary);
@@ -31,35 +68,191 @@
   --spek-text-secondary: var(--color-text-secondary);
   --spek-text-muted: var(--color-text-muted);
   --spek-accent: var(--color-accent);
+
+  /* Graph nodes: ink-outlined specs, green live work, ash archive. */
+  --spek-node-spec: #ffffff;
+  --spek-node-spec-stroke: #171717;
+  --spek-node-active: #297a3a;
+  --spek-node-active-stroke: #297a3a;
+  --spek-node-archived: #ebebeb;
+  --spek-node-archived-stroke: #a8a8a8;
+  color-scheme: light;
 }
 
-[data-theme="light"] {
-  --color-bg-primary: #f8fafc;
-  --color-bg-secondary: #ffffff;
-  --color-bg-tertiary: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-  --color-accent: #d97706;
-  --color-accent-hover: #b45309;
+/* @spekjs/ui chrome in this host's idiom: hairline rings, mono labels, 6px radius. */
+.spekui-legend,
+.spekui-timeline,
+.spekui-tooltip {
+  border: 0;
+  border-radius: 6px;
+  box-shadow: var(--shadow-ring);
+}
+
+.spekui-legend {
+  background-color: color-mix(in srgb, var(--color-bg-secondary) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.spekui-tooltip {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 12px 32px -12px rgba(0, 0, 0, 0.12);
+}
+
+.spekui-timeline-section,
+.spekui-legend,
+.spekui-tooltip-status,
+.spekui-tooltip-chip {
+  font-family: var(--font-mono);
+}
+
+.spekui-timeline-section {
+  font-weight: 400;
+  letter-spacing: 0.071em;
+}
+
+.spekui-timeline-label,
+.spekui-tooltip-slug {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.spekui-legend-swatch--spec {
+  box-shadow: inset 0 0 0 1.5px #171717;
+}
+
+.spekui-graph .spekui-node--spec {
+  fill-opacity: 1;
+  stroke-width: 1.5px;
+}
+
+.spekui-graph text {
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 body {
-  font-family: "Plus Jakarta Sans", sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "calt" 0, "rlig", "ss11";
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  line-height: 1.75;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-code, pre {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+code, pre, kbd {
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background-color: #171717;
+  color: #ffffff;
+}
+
+/* Eyebrow: the monospace stamp for labels, metadata and section markers. */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: 0.071em;
+  text-transform: uppercase;
+}
+
+/* Page heading: 30px, weight 450, tight tracking. Never bold. */
+@utility heading {
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 450;
+  letter-spacing: -1.5px;
+  color: var(--color-text-primary);
+}
+
+/* Display: hero-only. Line-height stays at 1.0. */
+@utility display {
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 450;
+  letter-spacing: -3.36px;
+  color: var(--color-text-primary);
+}
+
+/* Bordered card: white surface, double hairline ring that survives any background. */
+@utility card {
+  background-color: var(--color-bg-secondary);
+  border-radius: 6px;
+  box-shadow: var(--shadow-ring);
+}
+
+/* Filled black button — the primary action. */
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  background-color: var(--color-accent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 150ms;
+  cursor: pointer;
+  &:hover { background-color: var(--color-accent-hover); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+/* Ghost outline button — secondary action. */
+@utility btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-ring-hairline);
+  font-size: 14px;
+  transition: color 150ms, box-shadow 150ms;
+  cursor: pointer;
+  &:hover { color: var(--color-text-primary); box-shadow: 0 0 0 1px var(--color-border-strong); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+/* Text input: white field, hairline, ink focus ring. */
+@utility field {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  transition: border-color 150ms, box-shadow 150ms;
+  &::placeholder { color: var(--color-text-faint); }
+  &:focus { outline: none; border-color: var(--color-border-strong); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06); }
+}
+
+/* Segmented control (scope / sort): a hairline track with a white raised thumb. */
+@utility segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 6px;
+  background-color: var(--color-bg-tertiary);
+  box-shadow: var(--shadow-ring-hairline);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -68,7 +261,7 @@ code, pre {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.4s ease-out both;
+  animation: fadeInUp 0.3s ease-out both;
 }
 
 @keyframes fadeIn {

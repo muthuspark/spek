@@ -28,7 +28,7 @@ export function AggregationScopeControl({ isMobile }: { isMobile: boolean }) {
         aria-label="Aggregation scope"
         value={level}
         onChange={(e) => setLevel(e.target.value as AggLevel)}
-        className="rounded border border-border bg-bg-tertiary text-text-secondary text-[11px] px-1.5 py-1 cursor-pointer"
+        className="field h-8 font-mono text-[11px] px-1.5 cursor-pointer"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -43,7 +43,7 @@ export function AggregationScopeControl({ isMobile }: { isMobile: boolean }) {
     <div
       role="group"
       aria-label="Aggregation scope"
-      className="inline-flex items-center gap-0.5 rounded border border-border bg-bg-tertiary p-0.5 text-[11px]"
+      className="segmented font-mono text-[11px] tracking-[0.02em]"
     >
       {options.map((opt) => {
         const active = level === opt.value;
@@ -55,10 +55,10 @@ export function AggregationScopeControl({ isMobile }: { isMobile: boolean }) {
             onClick={() => setLevel(opt.value)}
             title={opt.title}
             className={
-              "rounded px-1.5 py-0.5 transition-colors cursor-pointer " +
+              "rounded-[4px] px-2 h-6 transition-colors cursor-pointer whitespace-nowrap " +
               (active
-                ? "bg-bg-secondary text-accent font-medium"
-                : "text-text-muted hover:text-text-secondary")
+                ? "bg-bg-secondary text-text-primary shadow-[0_0_0_1px_var(--color-border)]"
+                : "text-text-muted hover:text-text-primary")
             }
           >
             {opt.text}
