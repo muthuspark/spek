@@ -82,10 +82,10 @@ export function SelectRepo() {
             <path d="M 12.8 8.5 L 14.3 7 L 15.8 8.5 L 14.3 10 Z" fill="currentColor" />
             <path d="M 16.2 23.5 L 17.7 22 L 19.2 23.5 L 17.7 25 Z" fill="currentColor" />
           </svg>
-          <span className="text-[17px] font-medium tracking-tight">spek</span>
+          <span className="font-display text-[25px] font-semibold tracking-[-0.02em]">spek</span>
         </div>
 
-        <p className="eyebrow text-text-muted mb-3">OpenSpec viewer</p>
+        <p className="eyebrow text-accent mb-3">OpenSpec viewer</p>
         <h1 className="display mb-4">Open a repo.</h1>
         <p className="text-text-secondary text-base mb-12">
           Point spek at any folder that contains an <code className="font-mono text-[0.9em] text-text-primary">openspec/</code> directory.

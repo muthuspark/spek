@@ -75,7 +75,7 @@ export function Layout() {
       {/* Header */}
       <header
         data-spek-app-header
-        className="fixed top-0 left-0 right-0 h-16 bg-bg-primary/80 backdrop-blur-xl border-b border-border flex items-center gap-3 px-4 md:px-6 z-10"
+        className="fixed top-0 left-0 right-0 h-[4.5rem] bg-bg-primary/95 border-b border-border flex items-center gap-3 px-4 md:px-8 z-10"
       >
         {isMobile && (
           <button
@@ -91,7 +91,7 @@ export function Layout() {
         <Link
           to="/"
           aria-label="Go to spek home"
-          className="flex items-center gap-2 text-text-primary text-[15px] font-medium tracking-tight"
+          className="flex items-center gap-2 text-text-primary text-[20px] font-semibold tracking-[-0.02em]"
         >
           <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none">
             <path
@@ -107,7 +107,7 @@ export function Layout() {
         </Link>
         {!isMobile && (
           <>
-            <span className="text-border-strong text-lg font-light select-none" aria-hidden="true">/</span>
+            <span className="text-accent text-lg font-light select-none" aria-hidden="true">·</span>
             <span className="font-mono text-[13px] text-text-secondary truncate max-w-64" title={repoPath}>
               {getWorkspaceName(repoPath)}
             </span>
@@ -116,7 +116,7 @@ export function Layout() {
         <div className="flex-1 flex justify-center px-2">
           <button
             onClick={() => setSearchOpen(true)}
-            className="w-full max-w-sm h-8 px-3 rounded bg-bg-secondary text-text-faint text-sm shadow-[0_0_0_1px_var(--color-border)] hover:shadow-[0_0_0_1px_var(--color-border-strong)] hover:text-text-muted transition-shadow flex items-center gap-2 cursor-pointer"
+            className="w-full max-w-sm h-9 px-3 rounded bg-bg-secondary text-text-faint text-sm shadow-[0_0_0_1px_var(--color-border)] hover:shadow-[0_0_0_1px_var(--color-border-strong)] hover:text-text-muted transition-shadow flex items-center gap-2 cursor-pointer"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -133,7 +133,7 @@ export function Layout() {
       <Sidebar open={sidebarOpen} isMobile={isMobile} collapsed={collapsed} onClose={() => setSidebarOpen(false)} onToggle={toggleCollapsed} />
 
       {/* Main content */}
-      <main className={`pt-24 pb-16 px-4 md:px-8 transition-all duration-200 ${isMobile ? "" : collapsed ? "ml-14" : "ml-60"}`}>
+      <main className={`pt-28 pb-20 px-4 md:px-10 transition-all duration-200 ${isMobile ? "" : collapsed ? "ml-14" : "ml-60"}`}>
         <div className="mx-auto max-w-[1280px]">
           <Outlet />
         </div>

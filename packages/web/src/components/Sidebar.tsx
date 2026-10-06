@@ -149,11 +149,11 @@ export function Sidebar({ open, isMobile, collapsed, onClose, onToggle }: Sideba
       <>
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-bg-primary/60 backdrop-blur-sm z-20"
+          className="fixed inset-0 bg-bg-inverted/20 backdrop-blur-sm z-20"
           onClick={onClose}
         />
         {/* Sidebar overlay */}
-        <aside className="fixed top-16 left-0 bottom-0 w-60 bg-bg-primary border-r border-border overflow-y-auto z-30 flex flex-col">
+        <aside className="fixed top-[4.5rem] left-0 bottom-0 w-60 bg-bg-tertiary border-r border-border overflow-y-auto z-30 flex flex-col">
           <nav className="p-3 space-y-0.5 flex-1">
             {links.map((link) => (
               <NavLink
@@ -162,7 +162,7 @@ export function Sidebar({ open, isMobile, collapsed, onClose, onToggle }: Sideba
                 className={({ isActive }) =>
                   `flex items-center gap-2.5 px-3 py-1.5 rounded text-sm transition-colors ${
                     isActive
-                      ? "bg-black/[0.06] text-text-primary font-medium"
+                    ? "bg-bg-secondary text-accent font-medium shadow-[0_0_0_1px_var(--color-border)]"
                       : "text-text-muted hover:text-text-primary hover:bg-black/[0.04]"
                   }`
                 }
@@ -182,7 +182,7 @@ export function Sidebar({ open, isMobile, collapsed, onClose, onToggle }: Sideba
   }
 
   return (
-    <aside className={`fixed top-16 left-0 bottom-0 bg-bg-primary border-r border-border overflow-y-auto flex flex-col transition-all duration-200 ${collapsed ? "w-14" : "w-60"}`}>
+    <aside className={`fixed top-[4.5rem] left-0 bottom-0 bg-bg-tertiary border-r border-border overflow-y-auto flex flex-col transition-all duration-200 ${collapsed ? "w-14" : "w-60"}`}>
       <nav className={`flex-1 space-y-0.5 ${collapsed ? "p-2" : "p-3"}`}>
         {links.map((link) => (
           <NavLink
@@ -194,7 +194,7 @@ export function Sidebar({ open, isMobile, collapsed, onClose, onToggle }: Sideba
                 collapsed ? "justify-center px-2 py-2" : "px-3 py-1.5"
               } ${
                 isActive
-                  ? "bg-black/[0.06] text-text-primary font-medium"
+                  ? "bg-bg-secondary text-accent font-medium shadow-[0_0_0_1px_var(--color-border)]"
                   : "text-text-muted hover:text-text-primary hover:bg-black/[0.04]"
               }`
             }

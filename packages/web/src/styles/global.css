@@ -2,42 +2,42 @@
 @import "@spekjs/ui/styles.css";
 
 /*
- * Visual system: "typeset terminal on white paper" (see DESIGN.md at the repo root).
+ * Visual system: "paper & ink" (see DESIGN.md at the repo root).
  *
- * Light only. The chrome is monochrome: #fafafa canvas, #ffffff cards, #ebebeb hairlines,
- * #171717 ink. Chromatic color exists only where it carries meaning (diffs, BDD keywords,
- * status), and even there it is muted.
+ * The product remains quiet and information-dense, but its surfaces now feel printed rather
+ * than sterile: warm paper, ink-black type, crimson editorial marks, and mono metadata.
  */
 @theme {
   /* Surfaces */
-  --color-bg-primary: #fafafa;
-  --color-bg-secondary: #ffffff;
-  --color-bg-tertiary: #f5f5f5;
-  --color-bg-inverted: #171717;
+  --color-bg-primary: #faf9f7;
+  --color-bg-secondary: #fffefa;
+  --color-bg-tertiary: #f3f0eb;
+  --color-bg-inverted: #1a1a1a;
 
   /* Hairlines */
-  --color-border: #ebebeb;
-  --color-border-strong: #c9c9c9;
+  --color-border: #e5ded6;
+  --color-border-strong: #b9aaa0;
 
   /* Ink scale — the only "color" in the type system */
-  --color-text-primary: #171717;
-  --color-text-secondary: #4d4d4d;
-  --color-text-muted: #666666;
-  --color-text-faint: #8f8f8f;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #514b47;
+  --color-text-muted: #716964;
+  --color-text-faint: #988e87;
 
   /* Accent = ink. The primary action is the darkest thing on the page. */
-  --color-accent: #171717;
-  --color-accent-hover: #383838;
+  --color-accent: #c41e3a;
+  --color-accent-hover: #a51931;
 
   /* Semantic, muted — use only where color carries meaning */
-  --color-success: #297a3a;
+  --color-success: #3b7545;
   --color-danger: #b4232a;
   --color-warning: #8a5a00;
-  --color-info: #2f5d9a;
+  --color-info: #456789;
 
   /* Type */
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Source Serif 4", Georgia, serif;
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Radius: 6px on every card, button and bordered box; 2px for tiny nav marks */
   --radius-xs: 2px;
@@ -47,8 +47,8 @@
   --radius-xl: 6px;
 
   /* Depth comes from hairline rings, never drop shadows */
-  --shadow-ring: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 0 0 2px #fafafa;
-  --shadow-ring-hairline: 0 0 0 1px #ebebeb;
+  --shadow-ring: 0 0 0 1px rgba(85, 58, 42, 0.12), 0 0 0 2px #faf9f7;
+  --shadow-ring-hairline: 0 0 0 1px #e5ded6;
 }
 
 /*
@@ -71,11 +71,11 @@
 
   /* Graph nodes: ink-outlined specs, green live work, ash archive. */
   --spek-node-spec: #ffffff;
-  --spek-node-spec-stroke: #171717;
-  --spek-node-active: #297a3a;
-  --spek-node-active-stroke: #297a3a;
-  --spek-node-archived: #ebebeb;
-  --spek-node-archived-stroke: #a8a8a8;
+  --spek-node-spec-stroke: #1a1a1a;
+  --spek-node-active: #3b7545;
+  --spek-node-active-stroke: #3b7545;
+  --spek-node-archived: #e5ded6;
+  --spek-node-archived-stroke: #a89c93;
   color-scheme: light;
 }
 
@@ -134,8 +134,8 @@ body {
   font-feature-settings: "calt" 0, "rlig", "ss11";
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -144,7 +144,7 @@ code, pre, kbd {
 }
 
 ::selection {
-  background-color: #171717;
+  background-color: #c41e3a;
   color: #ffffff;
 }
 
@@ -160,26 +160,28 @@ code, pre, kbd {
 
 /* Page heading: 30px, weight 450, tight tracking. Never bold. */
 @utility heading {
-  font-size: 30px;
-  line-height: 1.1;
-  font-weight: 450;
-  letter-spacing: -1.5px;
+  font-family: var(--font-display);
+  font-size: 38px;
+  line-height: 0.98;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--color-text-primary);
 }
 
 /* Display: hero-only. Line-height stays at 1.0. */
 @utility display {
-  font-size: 56px;
-  line-height: 1;
-  font-weight: 450;
-  letter-spacing: -3.36px;
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 7vw, 5rem);
+  line-height: 0.92;
+  font-weight: 600;
+  letter-spacing: -0.03em;
   color: var(--color-text-primary);
 }
 
 /* Bordered card: white surface, double hairline ring that survives any background. */
 @utility card {
   background-color: var(--color-bg-secondary);
-  border-radius: 6px;
+  border-radius: 8px;
   box-shadow: var(--shadow-ring);
 }
 
@@ -194,7 +196,9 @@ code, pre, kbd {
   border-radius: 6px;
   background-color: var(--color-accent);
   color: #ffffff;
-  font-size: 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
   font-weight: 500;
   transition: background-color 150ms;
   cursor: pointer;
@@ -214,7 +218,8 @@ code, pre, kbd {
   background-color: var(--color-bg-secondary);
   color: var(--color-text-secondary);
   box-shadow: var(--shadow-ring-hairline);
-  font-size: 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   transition: color 150ms, box-shadow 150ms;
   cursor: pointer;
   &:hover { color: var(--color-text-primary); box-shadow: 0 0 0 1px var(--color-border-strong); }
@@ -227,7 +232,8 @@ code, pre, kbd {
   border: 1px solid var(--color-border);
   border-radius: 6px;
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
   transition: border-color 150ms, box-shadow 150ms;
   &::placeholder { color: var(--color-text-faint); }
   &:focus { outline: none; border-color: var(--color-border-strong); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06); }
@@ -247,6 +253,31 @@ code, pre, kbd {
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+a, button, input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 768px) {
+  main > div {
+    position: relative;
+  }
+
+  main > div::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -2rem;
+    width: 1px;
+    height: 48px;
+    background: var(--color-accent);
+    opacity: 0.7;
+  }
 }
 
 @keyframes fadeInUp {

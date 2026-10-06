@@ -55,8 +55,9 @@ export function Dashboard() {
   return (
     <div className="space-y-16">
       <header>
-        <p className="eyebrow text-text-muted mb-3">Overview</p>
+        <p className="eyebrow text-accent mb-3">Field notes / overview</p>
         <h1 className="heading">Project status</h1>
+        <p className="mt-4 max-w-xl text-text-secondary">A living index of the work, decisions, and specifications shaping this repository.</p>
       </header>
 
       {/* Stat grid: one card, cells split by hairlines */}
@@ -146,7 +147,7 @@ export function Dashboard() {
 }
 
 function SectionHeader({ title }: { title: string }) {
-  return <h2 className="text-[22px] leading-tight font-medium tracking-[-0.6px] mb-5">{title}</h2>;
+  return <h2 className="font-display text-[28px] leading-tight font-semibold tracking-[-0.02em] mb-5">{title}</h2>;
 }
 
 function NavCard({ to, eyebrow, title, body, inverted = false }: {
@@ -165,8 +166,8 @@ function NavCard({ to, eyebrow, title, body, inverted = false }: {
           : "card hover:shadow-[0_0_0_1px_var(--color-border-strong)]"
       }`}
     >
-      <p className={`eyebrow mb-6 ${inverted ? "text-text-faint" : "text-text-muted"}`}>{eyebrow}</p>
-      <h3 className="text-[22px] leading-tight font-medium tracking-[-0.6px] flex items-center gap-2">
+      <p className={`eyebrow mb-6 ${inverted ? "text-[#d7c5bb]" : "text-accent"}`}>{eyebrow}</p>
+      <h3 className="font-display text-[28px] leading-tight font-semibold tracking-[-0.02em] flex items-center gap-2">
         {title}
         <span className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">&rarr;</span>
       </h3>

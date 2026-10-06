@@ -327,7 +327,7 @@ function FrontMatterRow({ fields }: { fields: FrontMatterField[] }) {
 export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRendererProps) {
   const { fields, body } = splitFrontMatter(content);
   return (
-    <div className="markdown-body max-w-[760px] text-[15px] leading-[1.7] text-text-secondary">
+    <div className="markdown-body max-w-[760px] text-[17px] leading-[1.7] text-text-secondary">
       {fields.length > 0 && <FrontMatterRow fields={fields} />}
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
@@ -352,7 +352,7 @@ export function MarkdownRenderer({ content, specTopics, idPrefix }: MarkdownRend
             return <h3 id={id} className="text-[17px] leading-snug font-medium tracking-[-0.3px] mt-8 mb-2 text-text-primary scroll-mt-24">{children}</h3>;
           },
           h4({ children }) {
-            return <h4 className="text-[15px] font-medium mt-6 mb-2 text-text-primary">{children}</h4>;
+            return <h4 className="text-[17px] font-medium mt-6 mb-2 text-text-primary">{children}</h4>;
           },
           h5({ children }) {
             return <h5 className="eyebrow mt-5 mb-2 text-text-primary">{children}</h5>;

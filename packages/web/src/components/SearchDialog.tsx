@@ -163,7 +163,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search specs and changes..."
-            className="flex-1 bg-transparent text-text-primary px-3 py-3.5 text-[15px] outline-none placeholder:text-text-faint"
+            className="flex-1 bg-transparent text-text-primary px-3 py-3.5 text-[17px] outline-none placeholder:text-text-faint"
           />
           <kbd className="text-[11px] text-text-muted bg-bg-tertiary px-1.5 py-0.5 rounded-xs shadow-[0_0_0_1px_var(--color-border)]">
             ESC
